@@ -1,0 +1,11 @@
+target/
+traces/
+screenshots/
+allure-results/
+allure-report/
+logs/
+.idea/
+*.iml
+.DS_Store
+.playwright-mcp/
+*.png
