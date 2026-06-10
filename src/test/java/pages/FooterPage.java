@@ -4,6 +4,7 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
 import com.microsoft.playwright.assertions.PlaywrightAssertions;
+import config.EnvConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,9 +30,10 @@ public class FooterPage {
     }
 
     public void assertFooterForexRateDisplays() {
-        log.info("Asserting footer forex rate is displayed");
-        PlaywrightAssertions.assertThat(footer()).containsText("$ 1.00 = Php");
-        log.info("PASSED: footer forex rate is displayed");
+        String expectedRate = "$ 1.00 = Php " + String.format("%.2f", EnvConfig.getExchangeRate());
+        log.info("Asserting footer forex rate displays: \"{}\"", expectedRate);
+        PlaywrightAssertions.assertThat(footer()).containsText(expectedRate);
+        log.info("PASSED: footer forex rate displays \"{}\"", expectedRate);
     }
 
     public void assertFooterCopyrightDisplaysCurrentYear() {

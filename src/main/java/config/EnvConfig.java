@@ -26,6 +26,10 @@ public class EnvConfig {
         return TEST_ENV;
     }
 
+    public static double getExchangeRate() {
+        return Double.parseDouble(System.getProperty("exchangeRate", "60.50"));
+    }
+
     public static String getCpanelHostingUrl() {
         return getBaseUrl() + "/shared-linux-hosting";
     }
