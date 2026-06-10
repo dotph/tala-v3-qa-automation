@@ -7,7 +7,6 @@ import com.microsoft.playwright.assertions.PlaywrightAssertions;
 import config.EnvConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.Assert;
 
 public class CpanelHostingPage {
     private static final Logger log = LogManager.getLogger(CpanelHostingPage.class);
@@ -17,16 +16,8 @@ public class CpanelHostingPage {
         this.page = page;
     }
 
-    private String resolveExpectedUrl(String path) {
-        return path.startsWith("http") ? path : EnvConfig.getUrl(path);
-    }
-
     public void navigateToCpanelHostingPage() {
         String url = EnvConfig.getCpanelHostingUrl();
-        if (page.url().contains("/shared-linux-hosting")) {
-            log.info("Already on cPanel Hosting page, skipping navigation");
-            return;
-        }
         log.info("Navigating to cPanel Hosting page: {}", url);
         page.navigate(url);
         log.info("Navigation complete");
@@ -56,13 +47,11 @@ public class CpanelHostingPage {
         log.info("PASSED: See Pricing button displays \"{}\"", expectedText);
     }
 
-    public void assertSeePricingButtonHref(String expectedPath) {
-        String expectedUrl = resolveExpectedUrl(expectedPath);
-        log.info("Asserting See Pricing button links to: \"{}\"", expectedUrl);
+    public void assertSeePricingButtonHref(String expectedHref) {
+        log.info("Asserting See Pricing button links to: \"{}\"", expectedHref);
         Locator seePricing = page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName("See Pricing"));
-        String actualHref = seePricing.evaluate("el => el.href").toString();
-        Assert.assertEquals(actualHref, expectedUrl, "See Pricing button href mismatch");
-        log.info("PASSED: See Pricing button links to \"{}\"", expectedUrl);
+        PlaywrightAssertions.assertThat(seePricing).hasAttribute("href", expectedHref);
+        log.info("PASSED: See Pricing button links to \"{}\"", expectedHref);
     }
 
     public void clickSeePricingButton() {
@@ -131,13 +120,11 @@ public class CpanelHostingPage {
         log.info("PASSED: [{}] plan CTA displays \"{}\"", planName, expectedCtaText);
     }
 
-    public void assertPlanCtaHref(String planName, String expectedPath) {
-        String expectedUrl = resolveExpectedUrl(expectedPath);
-        log.info("Asserting [{}] plan CTA links to: \"{}\"", planName, expectedUrl);
+    public void assertPlanCtaHref(String planName, String expectedHref) {
+        log.info("Asserting [{}] plan CTA links to: \"{}\"", planName, expectedHref);
         Locator cta = getPlanCard(planName).getByRole(AriaRole.LINK);
-        String actualHref = cta.evaluate("el => el.href").toString();
-        Assert.assertEquals(actualHref, expectedUrl, planName + " CTA href mismatch");
-        log.info("PASSED: [{}] plan CTA links to \"{}\"", planName, expectedUrl);
+        PlaywrightAssertions.assertThat(cta).hasAttribute("href", expectedHref);
+        log.info("PASSED: [{}] plan CTA links to \"{}\"", planName, expectedHref);
     }
 
     public void assertTaxNoteDisplays(String expectedText) {

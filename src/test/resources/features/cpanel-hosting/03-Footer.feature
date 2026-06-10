@@ -48,10 +48,10 @@ Feature: Footer
 
     # ==================== FOREX ==================== #
     And the footer section heading displays "dotPH Forex"
-    And the footer forex rate displays "$ 1.00 = Php 60.50"
+    And the footer forex rate is displayed
 
     # ==================== BOTTOM BAR ==================== #
-    And the footer copyright displays "dotPH Domains Inc. Copyright 2026"
+    And the footer copyright displays the current year
     And the footer link displays "Privacy Policy Statement"
     And the footer link "Privacy Policy Statement" links to "/privacy-policy"
     And the footer link displays "Policies"

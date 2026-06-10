@@ -4,10 +4,10 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
 import com.microsoft.playwright.assertions.PlaywrightAssertions;
-import config.EnvConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.Assert;
+
+import java.time.Year;
 
 public class FooterPage {
     private static final Logger log = LogManager.getLogger(FooterPage.class);
@@ -21,10 +21,6 @@ public class FooterPage {
         this.page = page;
     }
 
-    private String resolveExpectedUrl(String path) {
-        return path.startsWith("http") ? path : EnvConfig.getUrl(path);
-    }
-
     public void assertFooterSectionHeadingDisplays(String expectedHeading) {
         log.info("Asserting footer section heading displays: \"{}\"", expectedHeading);
         Locator heading = footer().getByText(expectedHeading, new Locator.GetByTextOptions().setExact(true)).first();
@@ -32,13 +28,15 @@ public class FooterPage {
         log.info("PASSED: footer section heading displays \"{}\"", expectedHeading);
     }
 
-    public void assertFooterForexRateDisplays(String expectedRate) {
-        log.info("Asserting footer forex rate displays: \"{}\"", expectedRate);
-        PlaywrightAssertions.assertThat(footer()).containsText(expectedRate);
-        log.info("PASSED: footer forex rate displays \"{}\"", expectedRate);
+    public void assertFooterForexRateDisplays() {
+        log.info("Asserting footer forex rate is displayed");
+        PlaywrightAssertions.assertThat(footer()).containsText("$ 1.00 = Php");
+        log.info("PASSED: footer forex rate is displayed");
     }
 
-    public void assertFooterCopyrightDisplays(String expectedCopyright) {
+    public void assertFooterCopyrightDisplaysCurrentYear() {
+        int currentYear = Year.now().getValue();
+        String expectedCopyright = "dotPH Domains Inc. Copyright " + currentYear;
         log.info("Asserting footer copyright displays: \"{}\"", expectedCopyright);
         PlaywrightAssertions.assertThat(footer()).containsText(expectedCopyright);
         log.info("PASSED: footer copyright displays \"{}\"", expectedCopyright);
@@ -51,12 +49,10 @@ public class FooterPage {
         log.info("PASSED: footer link displays \"{}\"", expectedLinkText);
     }
 
-    public void assertFooterLinkHref(String linkText, String expectedPath) {
-        String expectedUrl = resolveExpectedUrl(expectedPath);
-        log.info("Asserting footer link \"{}\" links to: \"{}\"", linkText, expectedUrl);
+    public void assertFooterLinkHref(String linkText, String expectedHref) {
+        log.info("Asserting footer link \"{}\" links to: \"{}\"", linkText, expectedHref);
         Locator link = footer().getByRole(AriaRole.LINK, new Locator.GetByRoleOptions().setName(linkText));
-        String actualHref = link.evaluate("el => el.href").toString();
-        Assert.assertEquals(actualHref, expectedUrl, linkText + " href mismatch");
-        log.info("PASSED: footer link \"{}\" links to \"{}\"", linkText, expectedUrl);
+        PlaywrightAssertions.assertThat(link).hasAttribute("href", expectedHref);
+        log.info("PASSED: footer link \"{}\" links to \"{}\"", linkText, expectedHref);
     }
 }

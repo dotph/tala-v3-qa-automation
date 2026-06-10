@@ -4,10 +4,8 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
 import com.microsoft.playwright.assertions.PlaywrightAssertions;
-import config.EnvConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.Assert;
 
 public class NavBarPage {
     private static final Logger log = LogManager.getLogger(NavBarPage.class);
@@ -17,8 +15,9 @@ public class NavBarPage {
         this.page = page;
     }
 
-    private String resolveExpectedUrl(String path) {
-        return path.startsWith("http") ? path : EnvConfig.getUrl(path);
+    /** The currently open desktop dropdown panel. */
+    private Locator openDropdownPanel() {
+        return page.locator("div[class*='panelWrapperOpen']");
     }
 
     // ==================== HEADER ==================== //
@@ -31,13 +30,12 @@ public class NavBarPage {
         log.info("PASSED: dotPH logo is visible");
     }
 
-    public void assertLogoHref(String expectedPath) {
-        String expectedUrl = resolveExpectedUrl(expectedPath);
-        log.info("Asserting dotPH logo links to: \"{}\"", expectedUrl);
-        Locator logo = page.locator("header").getByRole(AriaRole.LINK, new Locator.GetByRoleOptions().setName("dotPH"));
-        String actualHref = logo.evaluate("el => el.href").toString();
-        Assert.assertEquals(actualHref, expectedUrl, "Logo href mismatch");
-        log.info("PASSED: dotPH logo links to \"{}\"", expectedUrl);
+    public void assertLogoHref(String expectedHref) {
+        log.info("Asserting dotPH logo links to: \"{}\"", expectedHref);
+        PlaywrightAssertions.assertThat(
+                page.locator("header").getByRole(AriaRole.LINK, new Locator.GetByRoleOptions().setName("dotPH")))
+                .hasAttribute("href", expectedHref);
+        log.info("PASSED: dotPH logo links to \"{}\"", expectedHref);
     }
 
     public void assertNavItemDisplays(String expectedText) {
@@ -56,14 +54,12 @@ public class NavBarPage {
         log.info("PASSED: Login button displays \"{}\"", expectedText);
     }
 
-    public void assertLoginButtonHref(String expectedPath) {
-        String expectedUrl = resolveExpectedUrl(expectedPath);
-        log.info("Asserting Login button links to: \"{}\"", expectedUrl);
+    public void assertLoginButtonHref(String expectedHref) {
+        log.info("Asserting Login button links to: \"{}\"", expectedHref);
         Locator loginLink = page.locator("header")
                 .getByRole(AriaRole.LINK, new Locator.GetByRoleOptions().setName("Login"));
-        String actualHref = loginLink.evaluate("el => el.href").toString();
-        Assert.assertEquals(actualHref, expectedUrl, "Login href mismatch");
-        log.info("PASSED: Login button links to \"{}\"", expectedUrl);
+        PlaywrightAssertions.assertThat(loginLink).hasAttribute("href", expectedHref);
+        log.info("PASSED: Login button links to \"{}\"", expectedHref);
     }
 
     public void assertCartButtonVisible() {
@@ -94,17 +90,15 @@ public class NavBarPage {
 
     public void assertNavLinkDisplays(String expectedText) {
         log.info("Asserting nav link displays: \"{}\"", expectedText);
-        Locator link = page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName(expectedText)).first();
+        Locator link = openDropdownPanel().getByRole(AriaRole.LINK, new Locator.GetByRoleOptions().setName(expectedText));
         PlaywrightAssertions.assertThat(link).containsText(expectedText);
         log.info("PASSED: nav link displays \"{}\"", expectedText);
     }
 
-    public void assertNavLinkHref(String linkText, String expectedPath) {
-        String expectedUrl = resolveExpectedUrl(expectedPath);
-        log.info("Asserting nav link \"{}\" links to: \"{}\"", linkText, expectedUrl);
-        Locator link = page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName(linkText)).first();
-        String actualHref = link.evaluate("el => el.href").toString();
-        Assert.assertEquals(actualHref, expectedUrl, linkText + " href mismatch");
-        log.info("PASSED: nav link \"{}\" links to \"{}\"", linkText, expectedUrl);
+    public void assertNavLinkHref(String linkText, String expectedHref) {
+        log.info("Asserting nav link \"{}\" links to: \"{}\"", linkText, expectedHref);
+        Locator link = openDropdownPanel().getByRole(AriaRole.LINK, new Locator.GetByRoleOptions().setName(linkText));
+        PlaywrightAssertions.assertThat(link).hasAttribute("href", expectedHref);
+        log.info("PASSED: nav link \"{}\" links to \"{}\"", linkText, expectedHref);
     }
 }

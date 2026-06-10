@@ -17,14 +17,14 @@ public class FooterTest {
         footerPage.assertFooterSectionHeadingDisplays(expectedHeading);
     }
 
-    @Then("the footer forex rate displays {string}")
-    public void assertFooterForexRate(String expectedRate) {
-        footerPage.assertFooterForexRateDisplays(expectedRate);
+    @Then("the footer forex rate is displayed")
+    public void assertFooterForexRate() {
+        footerPage.assertFooterForexRateDisplays();
     }
 
-    @Then("the footer copyright displays {string}")
-    public void assertFooterCopyright(String expectedCopyright) {
-        footerPage.assertFooterCopyrightDisplays(expectedCopyright);
+    @Then("the footer copyright displays the current year")
+    public void assertFooterCopyright() {
+        footerPage.assertFooterCopyrightDisplaysCurrentYear();
     }
 
     @Then("the footer link displays {string}")

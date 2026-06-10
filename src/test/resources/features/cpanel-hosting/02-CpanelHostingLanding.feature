@@ -23,7 +23,7 @@ Feature: cPanel Hosting Landing Page
   Scenario: Single Domain Hosting plan displays correct copies
     Then the plan title displays "Single Domain Hosting"
     And the "Single Domain Hosting" plan displays the pricing label "For as low as"
-    And the "Single Domain Hosting" plan displays the price "$6.50"
+    And the "Single Domain Hosting" plan displays the starting monthly price
     And the "Single Domain Hosting" plan displays the billing period "/ month"
     And the "Single Domain Hosting" plan displays the description "If you own a business that needs one domain to handle your operations online, our single domain plans are the ideal option for you."
     And the "Single Domain Hosting" plan CTA displays "Get Single Domain Hosting"
@@ -33,7 +33,7 @@ Feature: cPanel Hosting Landing Page
   Scenario: Multiple Domain Hosting plan displays correct copies
     Then the plan title displays "Multiple Domain Hosting"
     And the "Multiple Domain Hosting" plan displays the pricing label "For as low as"
-    And the "Multiple Domain Hosting" plan displays the price "$22.00"
+    And the "Multiple Domain Hosting" plan displays the starting monthly price
     And the "Multiple Domain Hosting" plan displays the billing period "/ month"
     And the "Multiple Domain Hosting" plan displays the description "If you are simultaneously managing several ventures, we also have hosting plans for multiple domains available. An easy control panel that fits your needs."
     And the "Multiple Domain Hosting" plan CTA displays "Get Multiple Domain Hosting"

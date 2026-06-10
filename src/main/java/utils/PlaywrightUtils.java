@@ -20,9 +20,6 @@ public class PlaywrightUtils {
     private static final ThreadLocal<Page>           TL_PAGE       = new ThreadLocal<>();
 
     public static void init() {
-        // Idempotent: skip if browser already open on this thread
-        if (TL_PAGE.get() != null) return;
-
         Playwright pw = Playwright.create(new Playwright.CreateOptions()
                 .setEnv(Map.of("PLAYWRIGHT_BROWSERS_PATH", PW_BROWSERS_PATH)));
         Browser br = pw.chromium().launch(new BrowserType.LaunchOptions()

@@ -1,5 +1,7 @@
 package tests;
 
+import config.MultipleDomainHostingPlan;
+import config.SingleDomainHostingPlan;
 import contexts.TestContext;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -68,8 +70,14 @@ public class CpanelHostingTest {
         cpanelHostingPage.assertPlanPricingLabel(planName, expectedLabel);
     }
 
-    @Then("the {string} plan displays the price {string}")
-    public void assertPlanPrice(String planName, String expectedPrice) {
+    @Then("the {string} plan displays the starting monthly price")
+    public void assertPlanStartingPrice(String planName) {
+        String expectedPrice;
+        if (planName.equals("Single Domain Hosting")) {
+            expectedPrice = "$" + SingleDomainHostingPlan.getStartingPrice().toPlainString();
+        } else {
+            expectedPrice = "$" + MultipleDomainHostingPlan.getStartingPrice().toPlainString();
+        }
         cpanelHostingPage.assertPlanPrice(planName, expectedPrice);
     }
 

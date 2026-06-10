@@ -1,7 +1,6 @@
 package runner;
 
 import io.cucumber.testng.CucumberOptions;
-import org.testng.annotations.DataProvider;
 
 @CucumberOptions(
         features = "src/test/resources/features/cpanel-hosting",
@@ -13,9 +12,4 @@ import org.testng.annotations.DataProvider;
         monochrome = true
 )
 public class CpanelHostingRunner extends BaseRunner {
-    @Override
-    @DataProvider(parallel = false)
-    public Object[][] scenarios() {
-        return super.scenarios();
-    }
 }

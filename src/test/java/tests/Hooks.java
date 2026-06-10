@@ -3,7 +3,6 @@ package tests;
 import com.microsoft.playwright.Page;
 import contexts.TestContext;
 import io.cucumber.java.After;
-import io.cucumber.java.AfterAll;
 import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;
 import io.qameta.allure.Allure;
@@ -44,57 +43,56 @@ public class Hooks {
 
     @After
     public void tearDown(Scenario scenario) {
-        // ── Trace ──────────────────────────────────────────────────────────
         try {
-            String timestamp = LocalDateTime.now().format(TIMESTAMP_FMT);
-            String safeName  = scenario.getName().replaceAll("[^a-zA-Z0-9_\\-]", "_");
-            String traceFile = timestamp + "_" + safeName + ".zip";
+            // ── Trace ──────────────────────────────────────────────────────────
+            try {
+                String timestamp = LocalDateTime.now().format(TIMESTAMP_FMT);
+                String safeName  = scenario.getName().replaceAll("[^a-zA-Z0-9_\\-]", "_");
+                String traceFile = timestamp + "_" + safeName + ".zip";
 
-            Path tracesDir = Paths.get(TRACES_DIR, LocalDateTime.now().format(DATE_FOLDER_FMT));
-            Files.createDirectories(tracesDir);
-            Path tracePath = tracesDir.resolve(traceFile);
+                Path tracesDir = Paths.get(TRACES_DIR, LocalDateTime.now().format(DATE_FOLDER_FMT));
+                Files.createDirectories(tracesDir);
+                Path tracePath = tracesDir.resolve(traceFile);
 
-            PlaywrightUtils.stopTracing(tracePath);
+                PlaywrightUtils.stopTracing(tracePath);
 
-            byte[] traceBytes = Files.readAllBytes(tracePath);
-            Allure.addAttachment(scenario.getName() + " trace", "application/zip",
-                    new ByteArrayInputStream(traceBytes), ".zip");
+                byte[] traceBytes = Files.readAllBytes(tracePath);
+                Allure.addAttachment(scenario.getName() + " trace", "application/zip",
+                        new ByteArrayInputStream(traceBytes), ".zip");
 
-            log.info("Trace saved: {}", tracePath.toAbsolutePath());
-        } catch (Exception e) {
-            log.error("Failed to save trace: {}", e.getMessage());
-        }
-
-        // ── Screenshot on failure ──────────────────────────────────────────
-        try {
-            if (scenario.isFailed()) {
-                Page page = context.page;
-                if (page != null && !page.isClosed()) {
-                    String timestamp = LocalDateTime.now().format(TIMESTAMP_FMT);
-                    String safeName  = scenario.getName().replaceAll("[^a-zA-Z0-9_\\-]", "_");
-                    String fileName  = timestamp + "_" + safeName + ".png";
-
-                    Path dir      = Paths.get(SCREENSHOTS_DIR, LocalDateTime.now().format(DATE_FOLDER_FMT));
-                    Files.createDirectories(dir);
-                    Path filePath = dir.resolve(fileName);
-
-                    byte[] screenshot = page.screenshot(
-                            new Page.ScreenshotOptions().setPath(filePath).setFullPage(true));
-
-                    Allure.addAttachment(scenario.getName(), "image/png",
-                            new ByteArrayInputStream(screenshot), ".png");
-
-                    log.error("Screenshot saved on failure: {}", filePath.toAbsolutePath());
-                }
+                log.info("Trace saved: {}", tracePath.toAbsolutePath());
+            } catch (Exception e) {
+                log.error("Failed to save trace: {}", e.getMessage());
             }
-        } catch (IOException e) {
-            log.error("Failed to save screenshot: {}", e.getMessage());
-        }
-    }
 
-    @AfterAll
-    public static void closeBrowser() {
-        LogManager.getLogger(Hooks.class).info("Closing browser session");
-        PlaywrightUtils.close();
+            // ── Screenshot on failure ──────────────────────────────────────────
+            try {
+                if (scenario.isFailed()) {
+                    Page page = context.page;
+                    if (page != null && !page.isClosed()) {
+                        String timestamp = LocalDateTime.now().format(TIMESTAMP_FMT);
+                        String safeName  = scenario.getName().replaceAll("[^a-zA-Z0-9_\\-]", "_");
+                        String fileName  = timestamp + "_" + safeName + ".png";
+
+                        Path dir      = Paths.get(SCREENSHOTS_DIR, LocalDateTime.now().format(DATE_FOLDER_FMT));
+                        Files.createDirectories(dir);
+                        Path filePath = dir.resolve(fileName);
+
+                        byte[] screenshot = page.screenshot(
+                                new Page.ScreenshotOptions().setPath(filePath).setFullPage(true));
+
+                        Allure.addAttachment(scenario.getName(), "image/png",
+                                new ByteArrayInputStream(screenshot), ".png");
+
+                        log.error("Screenshot saved on failure: {}", filePath.toAbsolutePath());
+                    }
+                }
+            } catch (IOException e) {
+                log.error("Failed to save screenshot: {}", e.getMessage());
+            }
+
+        } finally {
+            PlaywrightUtils.close();
+        }
     }
 }

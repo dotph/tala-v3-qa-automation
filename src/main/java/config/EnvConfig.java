@@ -29,8 +29,4 @@ public class EnvConfig {
     public static String getCpanelHostingUrl() {
         return getBaseUrl() + "/shared-linux-hosting";
     }
-
-    public static String getUrl(String path) {
-        return getBaseUrl() + path;
-    }
 }
