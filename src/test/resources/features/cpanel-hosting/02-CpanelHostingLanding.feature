@@ -10,7 +10,7 @@ Feature: cPanel Hosting Landing Page
     Then the hero title displays "cPanel Hosting"
     And the hero subtitle displays "Keep your websites in check with a web hosting service. Hosting services provide you the essentials to set up a well-run site: site upgrades, security, storage, bandwidth, and technical support."
     And the See Pricing button displays "See Pricing"
-    And the See Pricing button links to "/shared-linux-hosting#pricing"
+    And the See Pricing button links to "#pricing"
     When the user clicks the See Pricing button
     Then the pricing section is visible in the viewport
 
