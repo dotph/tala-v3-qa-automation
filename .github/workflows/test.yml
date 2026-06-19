@@ -1,0 +1,87 @@
+name: Test
+
+# Manual trigger only for the first cut — mdot.ph is staging and hitting it on every PR
+# would be noisy. Promote to `pull_request` / `push` once the workflow has been observed
+# running cleanly.
+on:
+  workflow_dispatch:
+    inputs:
+      testEnv:
+        description: 'Test environment'
+        required: true
+        default: 'MDOT'
+        type: choice
+        options:
+          - MDOT
+          - PRODUCTION
+      exchangeRate:
+        description: 'USD → PHP exchange rate'
+        required: true
+        default: '60.50'
+      tags:
+        description: 'Cucumber tag expression (optional, e.g. "@smoke and @pricing")'
+        required: false
+        default: ''
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pw-browsers-java
+          # Key on the Playwright Java version pinned in pom.xml so a bump invalidates the cache.
+          key: pw-browsers-java-${{ runner.os }}-1.45.0
+
+      - name: Install Playwright browsers
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ~/.cache/pw-browsers-java
+        run: |
+          mvn -B exec:java -e \
+            -Dexec.mainClass="com.microsoft.playwright.CLI" \
+            -Dexec.args="install --with-deps chromium"
+
+      - name: Run tests (headless)
+        run: |
+          mvn -B test \
+            -Dheadless=true \
+            -DtestEnv=${{ inputs.testEnv }} \
+            -DexchangeRate=${{ inputs.exchangeRate }} \
+            ${{ inputs.tags && format('-Dcucumber.filter.tags="{0}"', inputs.tags) || '' }}
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: target/allure-results/
+          if-no-files-found: warn
+
+      - name: Upload traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: traces
+          path: traces/
+          if-no-files-found: ignore
+
+      - name: Upload failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: screenshots/
+          if-no-files-found: ignore

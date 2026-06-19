@@ -1,0 +1,7 @@
+# Code owners for tala-v3-qa-automation.
+# Confirm the actual team handle with repo admins before merge — placeholder used here.
+
+*                       @dotph/qa
+/src/main/java/config/  @dotph/qa
+/docs/                  @dotph/qa
+/.github/               @dotph/qa
