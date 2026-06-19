@@ -5,4 +5,9 @@
             <class name="runner.CpanelHostingRunner"/>
         </classes>
     </test>
+    <test name="Single Domain Hosting Landing Page">
+        <classes>
+            <class name="runner.SingleDomainHostingRunner"/>
+        </classes>
+    </test>
 </suite>

@@ -107,29 +107,33 @@ public class SingleDomainHostingPage {
         log.info("PASSED: [{}] plan description matches expected copy", planName);
     }
 
-    private static final String SELECTED_LABEL = "✓ Selected";
-    private static final String UNSELECTED_LABEL = "Select";
+    private static final String SELECTED_BUTTON_TEXT   = "✓ Selected";
+    private static final String UNSELECTED_BUTTON_TEXT = "Select";
 
-    private Locator getPlanStateLabel(String planName, String stateLabel) {
-        return getPlanCard(planName).getByText(stateLabel, new Locator.GetByTextOptions().setExact(true)).first();
+    private Locator getPlanSelectButton(String planName) {
+        return getPlanCard(planName).locator("button[aria-pressed]");
     }
 
     public void assertPlanIsInSelectedState(String planName) {
         log.info("Asserting plan is in selected state: \"{}\"", planName);
-        PlaywrightAssertions.assertThat(getPlanStateLabel(planName, SELECTED_LABEL)).isVisible();
-        log.info("PASSED: plan \"{}\" is in selected state (shows \"{}\" label)", planName, SELECTED_LABEL);
+        Locator btn = getPlanSelectButton(planName);
+        PlaywrightAssertions.assertThat(btn).hasAttribute("aria-pressed", "true");
+        PlaywrightAssertions.assertThat(btn).hasText(SELECTED_BUTTON_TEXT);
+        log.info("PASSED: plan \"{}\" is in selected state (aria-pressed=true, shows \"{}\")", planName, SELECTED_BUTTON_TEXT);
     }
 
     public void assertPlanIsInUnselectedState(String planName) {
         log.info("Asserting plan is in unselected state: \"{}\"", planName);
-        PlaywrightAssertions.assertThat(getPlanStateLabel(planName, UNSELECTED_LABEL)).isVisible();
-        log.info("PASSED: plan \"{}\" is in unselected state (shows \"{}\" label)", planName, UNSELECTED_LABEL);
+        Locator btn = getPlanSelectButton(planName);
+        PlaywrightAssertions.assertThat(btn).hasAttribute("aria-pressed", "false");
+        PlaywrightAssertions.assertThat(btn).hasText(UNSELECTED_BUTTON_TEXT);
+        log.info("PASSED: plan \"{}\" is in unselected state (aria-pressed=false, shows \"{}\")", planName, UNSELECTED_BUTTON_TEXT);
     }
 
     public void selectPlan(String planName) {
         log.info("Selecting plan: \"{}\"", planName);
-        getPlanStateLabel(planName, UNSELECTED_LABEL).click();
-        log.info("Clicked \"{}\" on plan: \"{}\"", UNSELECTED_LABEL, planName);
+        getPlanSelectButton(planName).click();
+        log.info("Clicked toggle button on plan: \"{}\"", planName);
     }
 
     public void assertCtaReflectsPlan(String planName) {
