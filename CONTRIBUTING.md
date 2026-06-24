@@ -25,10 +25,26 @@ Every branch, commit, and PR is tagged with the Jira ticket key and a type prefi
 | Artefact | Format | Example |
 |---|---|---|
 | Branch | `<type>/<TICKET-ID>-<short-kebab-summary>` | `test/QATEAM-123-single-domain-hosting` |
-| Commit | `<TICKET-ID>: <type>(<scope>): <subject>` | `QATEAM-123: test(sdh): add Single Domain Hosting landing page automation` |
-| PR title | `<type>(<scope>): <subject> [<TICKET-ID>]` | `test(sdh): add Single Domain Hosting landing page UI automation [QATEAM-123]` |
+| Commit | `<type>(<scope>): <subject>` | `test(sdh): add Single Domain Hosting landing page` |
+| PR title | `<TICKET-ID> <type>(<scope>): <subject>` | `QATEAM-123 test(sdh): add Single Domain Hosting landing page` |
 
-**Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
+**Types** — pick the one that represents the *primary* purpose of the change. If two could apply 50/50, that's usually a sign the PR should be split.
+
+| Type | Means | Example title |
+|---|---|---|
+| `feat` | New product/feature functionality (user-visible "I added a new thing"). | `feat(config): add PRODUCTION env override for staging-like dot.ph runs` |
+| `fix` | Bug fix — something was broken, now it isn't. | `fix(sdh): replace stale plan-card heading locator after redesign` |
+| `docs` | Documentation only — README, code comments, markdown in `docs/`. No behaviour change. | `docs: clarify -DtestEnv usage in README` |
+| `style` | Formatting only — whitespace, indentation, semicolons, import order. Zero behaviour change. | `style: reformat SingleDomainHostingPage with project import order` |
+| `refactor` | Restructuring without changing external behaviour. Same outcome, cleaner internals. | `refactor(pages): extract getPlanCard helper into a base PricingPage` |
+| `perf` | Performance improvement — faster, less memory, less I/O — same behaviour. | `perf(playwright): switch from full snapshot to targeted Locator query` |
+| `test` | Test code — adding, updating, or removing tests. **The default for most work in this repo.** | `test(sdh): add Single Domain Hosting landing page automation` |
+| `build` | Build system / dependency changes — `pom.xml`, Maven plugins, dependency versions. | `build: bump Playwright Java to 1.46.0` |
+| `ci` | CI / CD pipeline — `.github/workflows/`, runner config. | `ci: cache Maven .m2 between workflow runs` |
+| `chore` | Maintenance that doesn't fit any other type — `.gitignore`, directory renames, repo metadata. | `chore: add screenshots/ to .gitignore` |
+| `revert` | Undoing a previous commit; subject typically references the reverted SHA and why. | `revert: undo aria-pressed refactor (c31cd73) — assertion broke on Firefox` |
+
+Note: adding tests for an existing product feature is `test`, **not** `feat`. `feat` is reserved for *product* features (which this repo doesn't ship — it tests them).
 
 **Scope** is usually the page key (`sdh`, `cpanel`, `vps`, …) or a cross-cutting label (`ci`, `docs`, `config`).
 

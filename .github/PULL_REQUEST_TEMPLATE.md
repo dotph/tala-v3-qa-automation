@@ -1,6 +1,6 @@
 <!--
-PR title format: <type>(<scope>): <subject> [<TICKET-ID>]
-e.g. test(sdh): add Single Domain Hosting landing page automation [QATEAM-123]
+PR title format: <type>/<TICKET-ID>: <subject>
+e.g. test/QATEAM-123: add Single Domain Hosting landing page automation
 Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
 -->
 
