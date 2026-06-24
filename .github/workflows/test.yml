@@ -46,7 +46,7 @@ jobs:
         # works before the Maven cache is warm). Output is consumed by the
         # cache step below as part of the cache key.
         run: |
-          PW_VERSION=$(grep '<playwright.version>' pom.xml \
+          PW_VERSION=$(grep -m1 '<playwright.version>' pom.xml \
             | sed -e 's/.*<playwright.version>//' -e 's/<\/playwright.version>.*//' \
             | tr -d '[:space:]')
           if [ -z "$PW_VERSION" ]; then
