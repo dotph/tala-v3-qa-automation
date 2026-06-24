@@ -33,4 +33,8 @@ public class EnvConfig {
     public static String getCpanelHostingUrl() {
         return getBaseUrl() + "/shared-linux-hosting";
     }
+
+    public static String getSingleDomainHostingUrl() {
+        return getBaseUrl() + "/single-domain-hosting";
+    }
 }
