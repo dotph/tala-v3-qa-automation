@@ -39,12 +39,31 @@ jobs:
           java-version: '21'
           cache: maven
 
+      - name: Read Playwright Java version from pom.xml
+        id: pw-version
+        # Reads the <playwright.version> property from pom.xml directly with
+        # grep + sed (no `mvn help:evaluate` needed, so this is fast and
+        # works before the Maven cache is warm). Output is consumed by the
+        # cache step below as part of the cache key.
+        run: |
+          PW_VERSION=$(grep '<playwright.version>' pom.xml \
+            | sed -e 's/.*<playwright.version>//' -e 's/<\/playwright.version>.*//' \
+            | tr -d '[:space:]')
+          if [ -z "$PW_VERSION" ]; then
+            echo "::error::Could not read <playwright.version> from pom.xml"
+            exit 1
+          fi
+          echo "Playwright Java version: $PW_VERSION"
+          echo "version=$PW_VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
           path: ~/.cache/pw-browsers-java
-          # Key on the Playwright Java version pinned in pom.xml so a bump invalidates the cache.
-          key: pw-browsers-java-${{ runner.os }}-1.45.0
+          # Key is derived from the <playwright.version> property in pom.xml,
+          # so bumping the dependency in pom.xml auto-invalidates this cache
+          # and forces a re-install of the matching browsers.
+          key: pw-browsers-java-${{ runner.os }}-${{ steps.pw-version.outputs.version }}
 
       - name: Install Playwright browsers
         # PLAYWRIGHT_BROWSERS_PATH is exported INSIDE the run script (where
