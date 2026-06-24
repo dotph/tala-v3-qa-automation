@@ -47,9 +47,13 @@ jobs:
           key: pw-browsers-java-${{ runner.os }}-1.45.0
 
       - name: Install Playwright browsers
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: ~/.cache/pw-browsers-java
+        # PLAYWRIGHT_BROWSERS_PATH is exported INSIDE the run script (where
+        # bash expands $HOME) rather than under `env:` — YAML env values are
+        # not shell-expanded, so a literal `~` would land browsers in a
+        # `./~/.cache/...` directory instead of the cached path. See run
+        # 28081807050 for the original symptom.
         run: |
+          export PLAYWRIGHT_BROWSERS_PATH="$HOME/.cache/pw-browsers-java"
           mvn -B exec:java -e \
             -Dexec.mainClass="com.microsoft.playwright.CLI" \
             -Dexec.args="install --with-deps chromium"
