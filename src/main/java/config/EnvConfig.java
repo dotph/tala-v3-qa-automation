@@ -37,4 +37,8 @@ public class EnvConfig {
     public static String getSingleDomainHostingUrl() {
         return getBaseUrl() + "/single-domain-hosting";
     }
+
+    public static String getMultipleDomainHostingUrl() {
+        return getBaseUrl() + "/multiple-domain-hosting";
+    }
 }
