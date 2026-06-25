@@ -52,25 +52,49 @@ Feature: Single Domain Hosting Landing Page
     And the SDH CTA button reflects the "Professional" plan
 
   @single-domain-hosting @sanity @pricing @starter
-  Scenario: Starter plan displays correct copies and pricing
+  Scenario: Starter plan displays correct copies, pricing, and specs
     Then the SDH plan title displays "Starter"
     And the "Starter" SDH plan displays the monthly price
     And the "Starter" SDH plan displays the billing period "/ month"
     And the "Starter" SDH plan displays the description "Everything you need to get online"
+    And the "Starter" SDH plan includes its domain limit
+    And the "Starter" SDH plan includes its disk space
+    And the "Starter" SDH plan includes its bandwidth
+    And the "Starter" SDH plan includes its subdomain limit
+    And the "Starter" SDH plan includes its email account limit
+    And the "Starter" SDH plan includes its mailing list limit
+    And the "Starter" SDH plan includes its SSL coverage
+    And the "Starter" SDH plan Free SSL indicator matches its plan
 
   @single-domain-hosting @sanity @pricing @professional
-  Scenario: Professional plan displays correct copies and pricing
+  Scenario: Professional plan displays correct copies, pricing, and specs
     Then the SDH plan title displays "Professional"
     And the "Professional" SDH plan displays the monthly price
     And the "Professional" SDH plan displays the billing period "/ month"
     And the "Professional" SDH plan displays the description "More power for growing sites"
+    And the "Professional" SDH plan includes its domain limit
+    And the "Professional" SDH plan includes its disk space
+    And the "Professional" SDH plan includes its bandwidth
+    And the "Professional" SDH plan includes its subdomain limit
+    And the "Professional" SDH plan includes its email account limit
+    And the "Professional" SDH plan includes its mailing list limit
+    And the "Professional" SDH plan includes its SSL coverage
+    And the "Professional" SDH plan Free SSL indicator matches its plan
 
   @single-domain-hosting @sanity @pricing @deluxe
-  Scenario: Deluxe plan displays correct copies and pricing
+  Scenario: Deluxe plan displays correct copies, pricing, and specs
     Then the SDH plan title displays "Deluxe"
     And the "Deluxe" SDH plan displays the monthly price
     And the "Deluxe" SDH plan displays the billing period "/ month"
     And the "Deluxe" SDH plan displays the description "Maximum resources for demanding sites"
+    And the "Deluxe" SDH plan includes its domain limit
+    And the "Deluxe" SDH plan includes its disk space
+    And the "Deluxe" SDH plan includes its bandwidth
+    And the "Deluxe" SDH plan includes its subdomain limit
+    And the "Deluxe" SDH plan includes its email account limit
+    And the "Deluxe" SDH plan includes its mailing list limit
+    And the "Deluxe" SDH plan includes its SSL coverage
+    And the "Deluxe" SDH plan Free SSL indicator matches its plan
 
   @single-domain-hosting @smoke @pricing
   Scenario: Tax disclaimer displays correct copy
