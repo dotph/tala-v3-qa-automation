@@ -8,6 +8,8 @@ import config.EnvConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.regex.Pattern;
+
 public class SingleDomainHostingPage {
     private static final Logger log = LogManager.getLogger(SingleDomainHostingPage.class);
     private Page page;
@@ -142,6 +144,27 @@ public class SingleDomainHostingPage {
         Locator cta = page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName(expectedCtaText));
         PlaywrightAssertions.assertThat(cta).isVisible();
         log.info("PASSED: CTA reflects plan \"{}\" (shows \"{}\")", planName, expectedCtaText);
+    }
+
+    public void assertPlanSpec(String planName, String expectedSpec) {
+        log.info("Asserting [{}] plan includes spec: \"{}\"", planName, expectedSpec);
+        PlaywrightAssertions.assertThat(getPlanCard(planName)).containsText(expectedSpec);
+        log.info("PASSED: [{}] plan includes \"{}\"", planName, expectedSpec);
+    }
+
+    /**
+     * Asserts the Free SSL row's icon matches the plan's actual coverage —
+     * checkIcon (✓) when included, xIcon (✗) when not. The text "Free SSL"
+     * appears on every card, so the icon is the real signal of inclusion.
+     */
+    public void assertPlanFreeSslIndicator(String planName, boolean included) {
+        log.info("Asserting [{}] plan Free SSL indicator: {}", planName, included ? "included (✓)" : "not included (✗)");
+        Locator freeSslRow = getPlanCard(planName).locator("li")
+                .filter(new Locator.FilterOptions().setHasText("Free SSL"));
+        String expectedIconClass = included ? "checkIcon" : "xIcon";
+        PlaywrightAssertions.assertThat(freeSslRow.locator("svg"))
+                .hasAttribute("class", Pattern.compile(expectedIconClass));
+        log.info("PASSED: [{}] plan Free SSL row uses {} icon", planName, expectedIconClass);
     }
 
     public void assertTaxNoteDisplays(String expectedText) {
