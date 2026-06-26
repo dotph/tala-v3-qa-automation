@@ -4,10 +4,10 @@ import java.math.BigDecimal;
 
 public enum MultipleDomainHostingPlan {
     MD1("MD1", new BigDecimal("22.00")),
-    MD2("MD2", new BigDecimal("42.00")),
-    MD3("MD3", new BigDecimal("66.00")),
-    MD4("MD4", new BigDecimal("77.00")),
-    MD5("MD5", new BigDecimal("88.00"));
+    MD2("MD2", new BigDecimal("41.80")),
+    MD3("MD3", new BigDecimal("65.00")),
+    MD4("MD4", new BigDecimal("75.00")),
+    MD5("MD5", new BigDecimal("85.00"));
 
     private final String label;
     private final BigDecimal monthlyPrice;

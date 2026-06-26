@@ -10,4 +10,9 @@
             <class name="runner.SingleDomainHostingRunner"/>
         </classes>
     </test>
+    <test name="Multiple Domain Hosting Landing Page">
+        <classes>
+            <class name="runner.MultipleDomainHostingRunner"/>
+        </classes>
+    </test>
 </suite>
