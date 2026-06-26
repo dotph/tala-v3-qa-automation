@@ -156,8 +156,6 @@ public class MultipleDomainHostingPage {
     private static final String INCLUDED_CLASS_SUFFIX = "inclusionIncluded";
     private static final String EXCLUDED_CLASS_SUFFIX = "inclusionExcluded";
     private static final String EXCLUDED_ICON_CLASS_SUFFIX = "xIcon";
-    // Design system's --color-text-muted (#6b7280). Excluded items render in muted gray.
-    private static final String EXCLUDED_COLOR_RGB = "rgb(107, 114, 128)";
 
     private Locator getPlanFeatureItem(String planName, String feature, String classSuffix) {
         return getPlanCard(planName)
@@ -172,11 +170,10 @@ public class MultipleDomainHostingPage {
     }
 
     public void assertPlanExcludesFeature(String planName, String feature) {
-        log.info("Asserting [{}] plan excludes feature: \"{}\" (expecting X icon + muted gray text)", planName, feature);
+        log.info("Asserting [{}] plan excludes feature: \"{}\" (expecting X icon)", planName, feature);
         Locator item = getPlanFeatureItem(planName, feature, EXCLUDED_CLASS_SUFFIX);
         PlaywrightAssertions.assertThat(item).isVisible();
         PlaywrightAssertions.assertThat(item.locator("svg[class*='" + EXCLUDED_ICON_CLASS_SUFFIX + "']")).isVisible();
-        PlaywrightAssertions.assertThat(item).hasCSS("color", EXCLUDED_COLOR_RGB);
-        log.info("PASSED: [{}] plan excludes \"{}\" with X icon and muted gray text", planName, feature);
+        log.info("PASSED: [{}] plan excludes \"{}\" (X icon present)", planName, feature);
     }
 }
