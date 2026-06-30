@@ -8,8 +8,6 @@ import config.EnvConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.regex.Pattern;
-
 public class SingleDomainHostingPage {
     private static final Logger log = LogManager.getLogger(SingleDomainHostingPage.class);
     private Page page;
@@ -150,30 +148,36 @@ public class SingleDomainHostingPage {
         log.info("PASSED: CTA reflects plan \"{}\" (shows \"{}\")", planName, expectedCtaText);
     }
 
-    public void assertPlanSpec(String planName, String expectedSpec) {
-        log.info("Asserting [{}] plan includes spec: \"{}\"", planName, expectedSpec);
-        PlaywrightAssertions.assertThat(getPlanCard(planName)).containsText(expectedSpec);
-        log.info("PASSED: [{}] plan includes \"{}\"", planName, expectedSpec);
-    }
-
-    /**
-     * Asserts the Free SSL row's icon matches the plan's actual coverage —
-     * checkIcon (✓) when included, xIcon (✗) when not. The text "Free SSL"
-     * appears on every card, so the icon is the real signal of inclusion.
-     */
-    public void assertPlanFreeSslIndicator(String planName, boolean included) {
-        log.info("Asserting [{}] plan Free SSL indicator: {}", planName, included ? "included (✓)" : "not included (✗)");
-        Locator freeSslRow = getPlanCard(planName).locator("li")
-                .filter(new Locator.FilterOptions().setHasText("Free SSL"));
-        String expectedIconClass = included ? "checkIcon" : "xIcon";
-        PlaywrightAssertions.assertThat(freeSslRow.locator("svg"))
-                .hasAttribute("class", Pattern.compile(expectedIconClass));
-        log.info("PASSED: [{}] plan Free SSL row uses {} icon", planName, expectedIconClass);
-    }
-
     public void assertTaxNoteDisplays(String expectedText) {
         log.info("Asserting tax note displays: \"{}\"", expectedText);
         PlaywrightAssertions.assertThat(page.getByText(expectedText).first()).isVisible();
         log.info("PASSED: tax note displays \"{}\"", expectedText);
+    }
+
+    // ==================== PLAN INCLUSIONS ==================== //
+
+    // CSS module hash sits in the middle of the class name; the suffix is stable.
+    private static final String INCLUDED_CLASS_SUFFIX = "inclusionIncluded";
+    private static final String EXCLUDED_CLASS_SUFFIX = "inclusionExcluded";
+    private static final String EXCLUDED_ICON_CLASS_SUFFIX = "xIcon";
+
+    private Locator getPlanFeatureItem(String planName, String feature, String classSuffix) {
+        return getPlanCard(planName)
+                .locator("li[class*='" + classSuffix + "']")
+                .filter(new Locator.FilterOptions().setHasText(feature));
+    }
+
+    public void assertPlanIncludesFeature(String planName, String feature) {
+        log.info("Asserting [{}] plan includes feature: \"{}\"", planName, feature);
+        PlaywrightAssertions.assertThat(getPlanFeatureItem(planName, feature, INCLUDED_CLASS_SUFFIX)).isVisible();
+        log.info("PASSED: [{}] plan includes \"{}\"", planName, feature);
+    }
+
+    public void assertPlanExcludesFeature(String planName, String feature) {
+        log.info("Asserting [{}] plan excludes feature: \"{}\" (expecting X icon)", planName, feature);
+        Locator item = getPlanFeatureItem(planName, feature, EXCLUDED_CLASS_SUFFIX);
+        PlaywrightAssertions.assertThat(item).isVisible();
+        PlaywrightAssertions.assertThat(item.locator("svg[class*='" + EXCLUDED_ICON_CLASS_SUFFIX + "']")).isVisible();
+        log.info("PASSED: [{}] plan excludes \"{}\" (X icon present)", planName, feature);
     }
 }

@@ -57,14 +57,13 @@ Feature: Single Domain Hosting Landing Page
     And the "Starter" SDH plan displays the monthly price
     And the "Starter" SDH plan displays the billing period "/ month"
     And the "Starter" SDH plan displays the description "Everything you need to get online"
-    And the "Starter" SDH plan includes its domain limit
-    And the "Starter" SDH plan includes its disk space
-    And the "Starter" SDH plan includes its bandwidth
-    And the "Starter" SDH plan includes its subdomain limit
-    And the "Starter" SDH plan includes its email account limit
-    And the "Starter" SDH plan includes its mailing list limit
-    And the "Starter" SDH plan includes its SSL coverage
-    And the "Starter" SDH plan Free SSL indicator matches its plan
+    And the "Starter" SDH plan includes "1 domain"
+    And the "Starter" SDH plan includes "30 GB disk space"
+    And the "Starter" SDH plan includes "Up to 100 GB bandwidth"
+    And the "Starter" SDH plan includes "10 subdomains"
+    And the "Starter" SDH plan includes "50 email accounts"
+    And the "Starter" SDH plan includes "10 mailing lists"
+    And the "Starter" SDH plan excludes "Free SSL"
 
   @single-domain-hosting @sanity @pricing @professional
   Scenario: Professional plan displays correct copies, pricing, and specs
@@ -72,14 +71,13 @@ Feature: Single Domain Hosting Landing Page
     And the "Professional" SDH plan displays the monthly price
     And the "Professional" SDH plan displays the billing period "/ month"
     And the "Professional" SDH plan displays the description "More power for growing sites"
-    And the "Professional" SDH plan includes its domain limit
-    And the "Professional" SDH plan includes its disk space
-    And the "Professional" SDH plan includes its bandwidth
-    And the "Professional" SDH plan includes its subdomain limit
-    And the "Professional" SDH plan includes its email account limit
-    And the "Professional" SDH plan includes its mailing list limit
-    And the "Professional" SDH plan includes its SSL coverage
-    And the "Professional" SDH plan Free SSL indicator matches its plan
+    And the "Professional" SDH plan includes "1 domain"
+    And the "Professional" SDH plan includes "60 GB disk space"
+    And the "Professional" SDH plan includes "Up to 200 GB bandwidth"
+    And the "Professional" SDH plan includes "15 subdomains"
+    And the "Professional" SDH plan includes "100 email accounts"
+    And the "Professional" SDH plan includes "15 mailing lists"
+    And the "Professional" SDH plan excludes "Free SSL"
 
   @single-domain-hosting @sanity @pricing @deluxe
   Scenario: Deluxe plan displays correct copies, pricing, and specs
@@ -87,14 +85,13 @@ Feature: Single Domain Hosting Landing Page
     And the "Deluxe" SDH plan displays the monthly price
     And the "Deluxe" SDH plan displays the billing period "/ month"
     And the "Deluxe" SDH plan displays the description "Maximum resources for demanding sites"
-    And the "Deluxe" SDH plan includes its domain limit
-    And the "Deluxe" SDH plan includes its disk space
-    And the "Deluxe" SDH plan includes its bandwidth
-    And the "Deluxe" SDH plan includes its subdomain limit
-    And the "Deluxe" SDH plan includes its email account limit
-    And the "Deluxe" SDH plan includes its mailing list limit
-    And the "Deluxe" SDH plan includes its SSL coverage
-    And the "Deluxe" SDH plan Free SSL indicator matches its plan
+    And the "Deluxe" SDH plan includes "1 domain"
+    And the "Deluxe" SDH plan includes "120 GB disk space"
+    And the "Deluxe" SDH plan includes "Up to 500 GB bandwidth"
+    And the "Deluxe" SDH plan includes "25 subdomains"
+    And the "Deluxe" SDH plan includes "300 email accounts"
+    And the "Deluxe" SDH plan includes "25 mailing lists"
+    And the "Deluxe" SDH plan includes "Free SSL"
 
   @single-domain-hosting @smoke @pricing
   Scenario: Tax disclaimer displays correct copy
