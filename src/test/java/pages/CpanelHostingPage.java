@@ -62,7 +62,7 @@ public class CpanelHostingPage {
 
     public void assertPricingSectionInViewport() {
         log.info("Asserting pricing section is visible in viewport");
-        Locator h2 = page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setLevel(2));
+        Locator h2 = pricingSection().getByRole(AriaRole.HEADING, new Locator.GetByRoleOptions().setLevel(2));
         PlaywrightAssertions.assertThat(h2).isInViewport();
         log.info("PASSED: pricing section is visible in viewport");
     }
@@ -71,7 +71,7 @@ public class CpanelHostingPage {
 
     public void assertPlansSectionTitleText(String expectedTitle) {
         log.info("Asserting plans section title contains: \"{}\"", expectedTitle);
-        Locator h2 = page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setLevel(2));
+        Locator h2 = pricingSection().getByRole(AriaRole.HEADING, new Locator.GetByRoleOptions().setLevel(2));
         PlaywrightAssertions.assertThat(h2).containsText(expectedTitle);
         log.info("PASSED: plans section title contains \"{}\"", expectedTitle);
     }
@@ -82,6 +82,10 @@ public class CpanelHostingPage {
                 new Page.GetByRoleOptions().setLevel(3).setName(expectedTitle));
         PlaywrightAssertions.assertThat(planTitle).containsText(expectedTitle);
         log.info("PASSED: plan title displays \"{}\"", expectedTitle);
+    }
+
+    private Locator pricingSection() {
+        return page.locator("#pricing");
     }
 
     private Locator getPlanCard(String planName) {
