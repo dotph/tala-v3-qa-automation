@@ -15,6 +15,12 @@ Feature: Multiple Domain Hosting Landing Page
     Then the MDH pricing section is visible in the viewport
 
   # ==================== HOSTING PLANS ==================== #
+  # NOTE (QATEAM-970 item #3): per-card "Get MDx" link CTAs are not part of the
+  # current MDH design (only cPanel has them). The page-level CTA is asserted via
+  # `CTA button reflects the "X" plan` and `CTA button links to`. Each card's
+  # Select / ✓ Selected button is covered by the default-selection and
+  # plan-selection scenarios (aria-pressed + button text).
+
   @multiple-domain-hosting @smoke @pricing
   Scenario: Plans section title displays correct copy
     Then the MDH plans section title displays "Choose Your Plan"
