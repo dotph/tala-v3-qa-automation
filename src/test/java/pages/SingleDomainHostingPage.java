@@ -98,8 +98,12 @@ public class SingleDomainHostingPage {
     }
 
     private Locator getPlanCard(String planName) {
+        // Climb to the nearest ancestor with a "__card" class instead of assuming
+        // the h3 is a direct child of the card — survives any wrapper being
+        // inserted between the h3 and the card container.
         return page.getByRole(AriaRole.HEADING,
-                new Page.GetByRoleOptions().setLevel(3).setName(planName)).locator("..");
+                new Page.GetByRoleOptions().setLevel(3).setName(planName))
+                .locator("xpath=ancestor::div[contains(@class, '__card')][1]");
     }
 
     public void assertPlanPrice(String planName, String expectedPrice) {
