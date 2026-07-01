@@ -112,6 +112,11 @@ public class SingleDomainHostingTest {
         singleDomainHostingPage.assertCtaReflectsPlan(planName);
     }
 
+    @Then("the {string} SDH CTA button links to {string}")
+    public void assertCtaHref(String planName, String expectedHref) {
+        singleDomainHostingPage.assertCtaHrefForPlan(planName, expectedHref);
+    }
+
     @Then("the SDH tax note displays {string}")
     public void assertTaxNote(String expectedText) {
         singleDomainHostingPage.assertTaxNoteDisplays(expectedText);

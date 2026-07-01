@@ -27,6 +27,7 @@ Feature: Multiple Domain Hosting Landing Page
     And the "MD4" MDH plan is not selected by default
     And the "MD5" MDH plan is not selected by default
     And the MDH CTA button reflects the "MD3" plan
+    And the "MD3" MDH CTA button links to "#"
 
   @multiple-domain-hosting @sanity @pricing @plan-selection
   Scenario: User can select the MD1 plan
@@ -37,6 +38,7 @@ Feature: Multiple Domain Hosting Landing Page
     And the "MD4" MDH plan is in the unselected state
     And the "MD5" MDH plan is in the unselected state
     And the MDH CTA button reflects the "MD1" plan
+    And the "MD1" MDH CTA button links to "#"
 
   @multiple-domain-hosting @sanity @pricing @plan-selection
   Scenario: User can select the MD2 plan
@@ -47,6 +49,7 @@ Feature: Multiple Domain Hosting Landing Page
     And the "MD4" MDH plan is in the unselected state
     And the "MD5" MDH plan is in the unselected state
     And the MDH CTA button reflects the "MD2" plan
+    And the "MD2" MDH CTA button links to "#"
 
   @multiple-domain-hosting @sanity @pricing @plan-selection
   Scenario: User can select the MD4 plan
@@ -57,6 +60,7 @@ Feature: Multiple Domain Hosting Landing Page
     And the "MD3" MDH plan is in the unselected state
     And the "MD5" MDH plan is in the unselected state
     And the MDH CTA button reflects the "MD4" plan
+    And the "MD4" MDH CTA button links to "#"
 
   @multiple-domain-hosting @sanity @pricing @plan-selection
   Scenario: User can select the MD5 plan
@@ -67,6 +71,7 @@ Feature: Multiple Domain Hosting Landing Page
     And the "MD3" MDH plan is in the unselected state
     And the "MD4" MDH plan is in the unselected state
     And the MDH CTA button reflects the "MD5" plan
+    And the "MD5" MDH CTA button links to "#"
 
   @multiple-domain-hosting @sanity @pricing @plan-selection
   Scenario: User can re-select the MD3 plan after picking another
@@ -78,6 +83,7 @@ Feature: Multiple Domain Hosting Landing Page
     And the "MD4" MDH plan is in the unselected state
     And the "MD5" MDH plan is in the unselected state
     And the MDH CTA button reflects the "MD3" plan
+    And the "MD3" MDH CTA button links to "#"
 
   @multiple-domain-hosting @sanity @pricing @md1
   Scenario: MD1 plan displays correct copies, pricing, and specs

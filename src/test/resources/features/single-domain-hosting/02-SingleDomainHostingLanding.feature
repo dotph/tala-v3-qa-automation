@@ -25,6 +25,7 @@ Feature: Single Domain Hosting Landing Page
     And the "Starter" SDH plan is not selected by default
     And the "Deluxe" SDH plan is not selected by default
     And the SDH CTA button reflects the "Professional" plan
+    And the "Professional" SDH CTA button links to "#"
 
   @single-domain-hosting @sanity @pricing @plan-selection
   Scenario: User can select the Starter plan
@@ -33,6 +34,7 @@ Feature: Single Domain Hosting Landing Page
     And the "Professional" SDH plan is in the unselected state
     And the "Deluxe" SDH plan is in the unselected state
     And the SDH CTA button reflects the "Starter" plan
+    And the "Starter" SDH CTA button links to "#"
 
   @single-domain-hosting @sanity @pricing @plan-selection
   Scenario: User can select the Deluxe plan
@@ -41,6 +43,7 @@ Feature: Single Domain Hosting Landing Page
     And the "Starter" SDH plan is in the unselected state
     And the "Professional" SDH plan is in the unselected state
     And the SDH CTA button reflects the "Deluxe" plan
+    And the "Deluxe" SDH CTA button links to "#"
 
   @single-domain-hosting @sanity @pricing @plan-selection
   Scenario: User can re-select the Professional plan after picking another
@@ -50,6 +53,7 @@ Feature: Single Domain Hosting Landing Page
     And the "Starter" SDH plan is in the unselected state
     And the "Deluxe" SDH plan is in the unselected state
     And the SDH CTA button reflects the "Professional" plan
+    And the "Professional" SDH CTA button links to "#"
 
   @single-domain-hosting @sanity @pricing @starter
   Scenario: Starter plan displays correct copies, pricing, and specs

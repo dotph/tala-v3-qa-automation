@@ -112,6 +112,11 @@ public class MultipleDomainHostingTest {
         multipleDomainHostingPage.assertCtaReflectsPlan(planName);
     }
 
+    @Then("the {string} MDH CTA button links to {string}")
+    public void assertCtaHref(String planName, String expectedHref) {
+        multipleDomainHostingPage.assertCtaHrefForPlan(planName, expectedHref);
+    }
+
     @Then("the MDH tax note displays {string}")
     public void assertTaxNote(String expectedText) {
         multipleDomainHostingPage.assertTaxNoteDisplays(expectedText);

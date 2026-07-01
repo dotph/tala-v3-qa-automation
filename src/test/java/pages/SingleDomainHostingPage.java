@@ -148,6 +148,14 @@ public class SingleDomainHostingPage {
         log.info("PASSED: CTA reflects plan \"{}\" (shows \"{}\")", planName, expectedCtaText);
     }
 
+    public void assertCtaHrefForPlan(String planName, String expectedHref) {
+        String expectedCtaText = "Get " + planName;
+        log.info("Asserting [{}] CTA links to: \"{}\"", planName, expectedHref);
+        Locator cta = page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName(expectedCtaText));
+        PlaywrightAssertions.assertThat(cta).hasAttribute("href", expectedHref);
+        log.info("PASSED: [{}] CTA links to \"{}\"", planName, expectedHref);
+    }
+
     public void assertTaxNoteDisplays(String expectedText) {
         log.info("Asserting tax note displays: \"{}\"", expectedText);
         PlaywrightAssertions.assertThat(page.getByText(expectedText).first()).isVisible();
