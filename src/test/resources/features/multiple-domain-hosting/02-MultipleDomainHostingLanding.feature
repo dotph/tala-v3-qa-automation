@@ -111,7 +111,13 @@ Feature: Multiple Domain Hosting Landing Page
     And the "MD1" MDH plan includes "200 email accounts"
     And the "MD1" MDH plan excludes "Free SSL"
 
-  @multiple-domain-hosting @sanity @pricing @md2
+  # KNOWN BUG (observed 2026-06-30): live mdot.ph MD2 card renders Free SSL as
+  # included (checkIcon) while the intended state per PR #6 is excluded. The
+  # `excludes "Free SSL"` step below is expected to fail until the UI catches
+  # up. Remove the @known-bug tag when the assertion starts passing so the
+  # fail→pass flip isn't silent. Tracked in TALA3-71
+  # (https://dotph.atlassian.net/browse/TALA3-71), related to epic TALA3-70.
+  @multiple-domain-hosting @sanity @pricing @md2 @known-bug
   Scenario: MD2 plan displays correct copies, pricing, and specs
     Then the MDH plan title displays "MD2"
     And the "MD2" MDH plan displays the monthly price
