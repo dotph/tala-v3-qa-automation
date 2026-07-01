@@ -25,6 +25,12 @@ Feature: Single Domain Hosting Landing Page
   Scenario: Plans section title displays correct copy
     Then the SDH plans section title displays "Choose Your Plan"
 
+  @single-domain-hosting @sanity @pricing @plan-order
+  Scenario: Plan cards appear in the correct order
+    Then the SDH plan card at position 1 is "Starter"
+    And the SDH plan card at position 2 is "Professional"
+    And the SDH plan card at position 3 is "Deluxe"
+
   @single-domain-hosting @smoke @pricing @default-selection
   Scenario: Professional plan is selected by default
     Then the SDH default selected plan is "Professional"

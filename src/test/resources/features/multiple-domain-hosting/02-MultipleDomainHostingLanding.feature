@@ -25,6 +25,14 @@ Feature: Multiple Domain Hosting Landing Page
   Scenario: Plans section title displays correct copy
     Then the MDH plans section title displays "Choose Your Plan"
 
+  @multiple-domain-hosting @sanity @pricing @plan-order
+  Scenario: Plan cards appear in the correct order
+    Then the MDH plan card at position 1 is "MD1"
+    And the MDH plan card at position 2 is "MD2"
+    And the MDH plan card at position 3 is "MD3"
+    And the MDH plan card at position 4 is "MD4"
+    And the MDH plan card at position 5 is "MD5"
+
   @multiple-domain-hosting @smoke @pricing @default-selection
   Scenario: MD3 plan is selected by default
     Then the MDH default selected plan is "MD3"

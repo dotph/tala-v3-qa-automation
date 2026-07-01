@@ -66,6 +66,11 @@ public class MultipleDomainHostingTest {
         multipleDomainHostingPage.assertPlanTitleDisplays(expectedTitle);
     }
 
+    @Then("the MDH plan card at position {int} is {string}")
+    public void assertPlanCardAtPosition(int position, String expectedPlanName) {
+        multipleDomainHostingPage.assertPlanCardAtPosition(position, expectedPlanName);
+    }
+
     @Then("the {string} MDH plan displays the monthly price")
     public void assertPlanMonthlyPrice(String planName) {
         BigDecimal price = MultipleDomainHostingPlan.fromLabel(planName).getMonthlyPrice();

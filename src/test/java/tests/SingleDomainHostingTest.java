@@ -66,6 +66,11 @@ public class SingleDomainHostingTest {
         singleDomainHostingPage.assertPlanTitleDisplays(expectedTitle);
     }
 
+    @Then("the SDH plan card at position {int} is {string}")
+    public void assertPlanCardAtPosition(int position, String expectedPlanName) {
+        singleDomainHostingPage.assertPlanCardAtPosition(position, expectedPlanName);
+    }
+
     @Then("the {string} SDH plan displays the monthly price")
     public void assertPlanMonthlyPrice(String planName) {
         BigDecimal price = SingleDomainHostingPlan.fromLabel(planName).getMonthlyPrice();

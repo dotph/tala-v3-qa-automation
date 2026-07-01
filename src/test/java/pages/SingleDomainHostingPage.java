@@ -84,6 +84,15 @@ public class SingleDomainHostingPage {
         log.info("PASSED: plan title displays \"{}\"", expectedTitle);
     }
 
+    public void assertPlanCardAtPosition(int position, String expectedPlanName) {
+        log.info("Asserting plan card at position {}: \"{}\"", position, expectedPlanName);
+        Locator planTitleAtPosition = pricingSection()
+                .getByRole(AriaRole.HEADING, new Locator.GetByRoleOptions().setLevel(3))
+                .nth(position - 1);
+        PlaywrightAssertions.assertThat(planTitleAtPosition).hasText(expectedPlanName);
+        log.info("PASSED: plan card at position {} is \"{}\"", position, expectedPlanName);
+    }
+
     private Locator pricingSection() {
         return page.locator("#pricing");
     }
