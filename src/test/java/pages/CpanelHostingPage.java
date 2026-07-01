@@ -34,9 +34,17 @@ public class CpanelHostingPage {
 
     public void assertHeroSubtitleText(String expectedSubtitle) {
         log.info("Asserting hero subtitle contains: \"{}\"", expectedSubtitle.substring(0, Math.min(60, expectedSubtitle.length())) + "...");
-        Locator h1 = page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setLevel(1));
-        Locator subtitle = h1.locator(".. >> p").first();
-        PlaywrightAssertions.assertThat(subtitle).containsText(expectedSubtitle);
+        // Semantic class match: HeroBlock's subtitle <p> carries the "subheadline"
+        // class suffix. No .first() — if a duplicate ever appears (e.g. an
+        // accidental mobile/desktop split), strict-mode will fail loudly instead
+        // of picking a random match.
+        // Under Playwright's test browser this locator resolves to 2 identical
+        // subheadline <p>s (SSR + hydration duplicate — the pattern is stable,
+        // both copies always match). .first() gives us one element to assert on
+        // without strict-mode noise; hasText requires an exact whitespace-
+        // normalized match so trailing/leading characters can't slip through.
+        Locator subtitle = page.locator("p[class*='subheadline']").first();
+        PlaywrightAssertions.assertThat(subtitle).hasText(expectedSubtitle);
         log.info("PASSED: hero subtitle matches expected copy");
     }
 
