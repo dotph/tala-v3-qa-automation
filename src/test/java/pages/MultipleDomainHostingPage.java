@@ -226,7 +226,11 @@ public class MultipleDomainHostingPage {
 
     public void assertPlanIncludesFeature(String planName, String feature) {
         log.info("Asserting [{}] plan includes feature: \"{}\"", planName, feature);
-        PlaywrightAssertions.assertThat(getPlanFeatureItem(planName, feature, INCLUDED_CLASS_SUFFIX)).isVisible();
+        Locator item = getPlanFeatureItem(planName, feature, INCLUDED_CLASS_SUFFIX);
+        PlaywrightAssertions.assertThat(item).isVisible();
+        // Exact-match guard: hasText normalizes whitespace and asserts equality,
+        // preventing substring collisions like "40 GB" also matching "140 GB disk space".
+        PlaywrightAssertions.assertThat(item).hasText(feature);
         log.info("PASSED: [{}] plan includes \"{}\"", planName, feature);
     }
 
@@ -234,6 +238,7 @@ public class MultipleDomainHostingPage {
         log.info("Asserting [{}] plan excludes feature: \"{}\" (expecting X icon)", planName, feature);
         Locator item = getPlanFeatureItem(planName, feature, EXCLUDED_CLASS_SUFFIX);
         PlaywrightAssertions.assertThat(item).isVisible();
+        PlaywrightAssertions.assertThat(item).hasText(feature);
         PlaywrightAssertions.assertThat(item.locator("svg[class*='" + EXCLUDED_ICON_CLASS_SUFFIX + "']")).isVisible();
         log.info("PASSED: [{}] plan excludes \"{}\" (X icon present)", planName, feature);
     }
