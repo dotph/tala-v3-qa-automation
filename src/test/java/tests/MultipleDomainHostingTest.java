@@ -122,6 +122,33 @@ public class MultipleDomainHostingTest {
         multipleDomainHostingPage.assertTaxNoteDisplays(expectedText);
     }
 
+    // ==================== APPLY TO DOMAIN FIELD ==================== //
+
+    @Then("the MDH Apply to label displays {string}")
+    public void assertApplyToLabel(String expectedLabel) {
+        multipleDomainHostingPage.assertApplyToLabelDisplays(expectedLabel);
+    }
+
+    @Then("the MDH domain input field is visible")
+    public void assertDomainFieldVisible() {
+        multipleDomainHostingPage.assertDomainFieldVisible();
+    }
+
+    @Then("the MDH domain input placeholder displays {string}")
+    public void assertDomainFieldPlaceholder(String expectedPlaceholder) {
+        multipleDomainHostingPage.assertDomainFieldPlaceholder(expectedPlaceholder);
+    }
+
+    @When("the user fills the MDH domain input with {string}")
+    public void fillDomainField(String value) {
+        multipleDomainHostingPage.fillDomainField(value);
+    }
+
+    @Then("the MDH domain input value is {string}")
+    public void assertDomainFieldValue(String expectedValue) {
+        multipleDomainHostingPage.assertDomainFieldValue(expectedValue);
+    }
+
     // ==================== PLAN INCLUSIONS ==================== //
 
     @Then("the {string} MDH plan includes {string}")

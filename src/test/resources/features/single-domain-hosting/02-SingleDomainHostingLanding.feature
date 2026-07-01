@@ -97,6 +97,14 @@ Feature: Single Domain Hosting Landing Page
     And the "Deluxe" SDH plan includes "25 mailing lists"
     And the "Deluxe" SDH plan includes "Free SSL"
 
+  @single-domain-hosting @sanity @pricing @apply-domain
+  Scenario: Apply-to domain field accepts input
+    Then the SDH Apply to label displays "Apply to:"
+    And the SDH domain input field is visible
+    And the SDH domain input placeholder displays "Find your domain name here"
+    When the user fills the SDH domain input with "example.com"
+    Then the SDH domain input value is "example.com"
+
   @single-domain-hosting @smoke @pricing
   Scenario: Tax disclaimer displays correct copy
     Then the SDH tax note displays "* Applicable taxes may apply at checkout."

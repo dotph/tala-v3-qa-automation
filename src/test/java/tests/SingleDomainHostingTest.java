@@ -122,6 +122,33 @@ public class SingleDomainHostingTest {
         singleDomainHostingPage.assertTaxNoteDisplays(expectedText);
     }
 
+    // ==================== APPLY TO DOMAIN FIELD ==================== //
+
+    @Then("the SDH Apply to label displays {string}")
+    public void assertApplyToLabel(String expectedLabel) {
+        singleDomainHostingPage.assertApplyToLabelDisplays(expectedLabel);
+    }
+
+    @Then("the SDH domain input field is visible")
+    public void assertDomainFieldVisible() {
+        singleDomainHostingPage.assertDomainFieldVisible();
+    }
+
+    @Then("the SDH domain input placeholder displays {string}")
+    public void assertDomainFieldPlaceholder(String expectedPlaceholder) {
+        singleDomainHostingPage.assertDomainFieldPlaceholder(expectedPlaceholder);
+    }
+
+    @When("the user fills the SDH domain input with {string}")
+    public void fillDomainField(String value) {
+        singleDomainHostingPage.fillDomainField(value);
+    }
+
+    @Then("the SDH domain input value is {string}")
+    public void assertDomainFieldValue(String expectedValue) {
+        singleDomainHostingPage.assertDomainFieldValue(expectedValue);
+    }
+
     // ==================== PLAN INCLUSIONS ==================== //
 
     @Then("the {string} SDH plan includes {string}")

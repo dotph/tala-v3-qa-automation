@@ -162,6 +162,46 @@ public class SingleDomainHostingPage {
         log.info("PASSED: tax note displays \"{}\"", expectedText);
     }
 
+    // ==================== APPLY TO DOMAIN FIELD ==================== //
+
+    private Locator domainField() {
+        return pricingSection().getByRole(AriaRole.SEARCHBOX);
+    }
+
+    private Locator applyToLabel() {
+        return pricingSection().locator("p[class*='applyLabel']");
+    }
+
+    public void assertApplyToLabelDisplays(String expectedLabel) {
+        log.info("Asserting Apply to label displays: \"{}\"", expectedLabel);
+        PlaywrightAssertions.assertThat(applyToLabel()).containsText(expectedLabel);
+        log.info("PASSED: Apply to label displays \"{}\"", expectedLabel);
+    }
+
+    public void assertDomainFieldVisible() {
+        log.info("Asserting domain input field is visible");
+        PlaywrightAssertions.assertThat(domainField()).isVisible();
+        log.info("PASSED: domain input field is visible");
+    }
+
+    public void assertDomainFieldPlaceholder(String expectedPlaceholder) {
+        log.info("Asserting domain input placeholder: \"{}\"", expectedPlaceholder);
+        PlaywrightAssertions.assertThat(domainField()).hasAttribute("placeholder", expectedPlaceholder);
+        log.info("PASSED: domain input placeholder \"{}\"", expectedPlaceholder);
+    }
+
+    public void fillDomainField(String value) {
+        log.info("Filling domain input with: \"{}\"", value);
+        domainField().fill(value);
+        log.info("Filled domain input with \"{}\"", value);
+    }
+
+    public void assertDomainFieldValue(String expectedValue) {
+        log.info("Asserting domain input value: \"{}\"", expectedValue);
+        PlaywrightAssertions.assertThat(domainField()).hasValue(expectedValue);
+        log.info("PASSED: domain input value \"{}\"", expectedValue);
+    }
+
     // ==================== PLAN INCLUSIONS ==================== //
 
     // CSS module hash sits in the middle of the class name; the suffix is stable.

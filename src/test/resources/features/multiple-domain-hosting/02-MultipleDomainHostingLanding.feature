@@ -145,6 +145,14 @@ Feature: Multiple Domain Hosting Landing Page
     And the "MD5" MDH plan includes "800 email accounts"
     And the "MD5" MDH plan includes "Free SSL"
 
+  @multiple-domain-hosting @sanity @pricing @apply-domain
+  Scenario: Apply-to domain field accepts input
+    Then the MDH Apply to label displays "Apply to:"
+    And the MDH domain input field is visible
+    And the MDH domain input placeholder displays "Find your domain name here"
+    When the user fills the MDH domain input with "example.com"
+    Then the MDH domain input value is "example.com"
+
   @multiple-domain-hosting @smoke @pricing
   Scenario: Tax disclaimer displays correct copy
     Then the MDH tax note displays "* Applicable taxes may apply at checkout."
