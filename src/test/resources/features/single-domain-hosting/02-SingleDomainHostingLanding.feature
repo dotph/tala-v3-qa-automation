@@ -12,7 +12,8 @@ Feature: Single Domain Hosting Landing Page
     And the SDH See Pricing button displays "See Pricing"
     And the SDH See Pricing button links to "#pricing"
     When the user clicks the SDH See Pricing button
-    Then the SDH pricing section is visible in the viewport
+    Then the URL hash is "#pricing"
+    And the SDH pricing section is visible in the viewport
 
   # ==================== HOSTING PLANS ==================== #
   # NOTE (QATEAM-970 item #3): per-card "Get {plan}" link CTAs are not part of the
