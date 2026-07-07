@@ -251,11 +251,15 @@ public class SingleDomainHostingPage {
     }
 
     public void assertPlanExcludesFeature(String planName, String feature) {
-        log.info("Asserting [{}] plan excludes feature: \"{}\" (expecting X icon)", planName, feature);
+        log.info("Asserting [{}] plan excludes feature: \"{}\" (expecting X icon + dimmed row)", planName, feature);
         Locator item = getPlanFeatureItem(planName, feature, PricingBlockClasses.EXCLUDED_SUFFIX);
         PlaywrightAssertions.assertThat(item).isVisible();
         PlaywrightAssertions.assertThat(item).hasText(feature);
         PlaywrightAssertions.assertThat(item.locator("svg[class*='" + PricingBlockClasses.EXCLUDED_ICON + "']")).isVisible();
-        log.info("PASSED: [{}] plan excludes \"{}\" (X icon present)", planName, feature);
+        // Complementary visual signal: excluded rows render at opacity 0.5 so
+        // they read as "greyed out". If the styling ever drops to opacity 1,
+        // the row looks included even though the class/icon still say excluded.
+        PlaywrightAssertions.assertThat(item).hasCSS("opacity", "0.5");
+        log.info("PASSED: [{}] plan excludes \"{}\" (X icon present, row dimmed)", planName, feature);
     }
 }
