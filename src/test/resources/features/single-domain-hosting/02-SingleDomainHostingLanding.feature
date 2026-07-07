@@ -32,6 +32,12 @@ Feature: Single Domain Hosting Landing Page
     And the SDH plan card at position 2 is "Professional"
     And the SDH plan card at position 3 is "Deluxe"
 
+  @single-domain-hosting @sanity @pricing @inclusions-heading
+  Scenario: Every plan card shows the inclusions heading
+    Then the "Starter" SDH plan inclusions heading displays "What's included:"
+    And the "Professional" SDH plan inclusions heading displays "What's included:"
+    And the "Deluxe" SDH plan inclusions heading displays "What's included:"
+
   @single-domain-hosting @smoke @pricing @default-selection
   Scenario: Professional plan is selected by default
     Then the SDH default selected plan is "Professional"

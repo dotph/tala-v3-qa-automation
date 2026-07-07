@@ -156,6 +156,11 @@ public class SingleDomainHostingTest {
 
     // ==================== PLAN INCLUSIONS ==================== //
 
+    @Then("the {string} SDH plan inclusions heading displays {string}")
+    public void assertPlanInclusionsHeading(String planName, String expectedHeading) {
+        singleDomainHostingPage.assertPlanInclusionsHeading(planName, expectedHeading);
+    }
+
     @Then("the {string} SDH plan includes {string}")
     public void assertPlanIncludesFeature(String planName, String feature) {
         singleDomainHostingPage.assertPlanIncludesFeature(planName, feature);

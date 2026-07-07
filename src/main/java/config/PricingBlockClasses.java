@@ -18,8 +18,9 @@ public final class PricingBlockClasses {
 
     private PricingBlockClasses() {}
 
-    public static final String INCLUDED_SUFFIX = "inclusionIncluded";
-    public static final String EXCLUDED_SUFFIX = "inclusionExcluded";
-    public static final String CHECK_ICON      = "checkIcon";
-    public static final String EXCLUDED_ICON   = "xIcon";
+    public static final String INCLUDED_SUFFIX    = "inclusionIncluded";
+    public static final String EXCLUDED_SUFFIX    = "inclusionExcluded";
+    public static final String CHECK_ICON         = "checkIcon";
+    public static final String EXCLUDED_ICON      = "xIcon";
+    public static final String INCLUSIONS_HEADING = "inclusionsHeading";
 }

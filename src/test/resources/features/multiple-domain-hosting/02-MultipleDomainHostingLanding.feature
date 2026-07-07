@@ -34,6 +34,14 @@ Feature: Multiple Domain Hosting Landing Page
     And the MDH plan card at position 4 is "MD4"
     And the MDH plan card at position 5 is "MD5"
 
+  @multiple-domain-hosting @sanity @pricing @inclusions-heading
+  Scenario: Every plan card shows the inclusions heading
+    Then the "MD1" MDH plan inclusions heading displays "What's included:"
+    And the "MD2" MDH plan inclusions heading displays "What's included:"
+    And the "MD3" MDH plan inclusions heading displays "What's included:"
+    And the "MD4" MDH plan inclusions heading displays "What's included:"
+    And the "MD5" MDH plan inclusions heading displays "What's included:"
+
   @multiple-domain-hosting @smoke @pricing @default-selection
   Scenario: MD3 plan is selected by default
     Then the MDH default selected plan is "MD3"

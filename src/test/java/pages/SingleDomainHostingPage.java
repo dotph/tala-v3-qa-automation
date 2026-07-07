@@ -226,6 +226,14 @@ public class SingleDomainHostingPage {
 
     // ==================== PLAN INCLUSIONS ==================== //
 
+    public void assertPlanInclusionsHeading(String planName, String expectedHeading) {
+        log.info("Asserting [{}] plan inclusions heading: \"{}\"", planName, expectedHeading);
+        Locator heading = getPlanCard(planName)
+                .locator("p[class*='" + PricingBlockClasses.INCLUSIONS_HEADING + "']");
+        PlaywrightAssertions.assertThat(heading).hasText(expectedHeading);
+        log.info("PASSED: [{}] plan inclusions heading \"{}\"", planName, expectedHeading);
+    }
+
     private Locator getPlanFeatureItem(String planName, String feature, String classSuffix) {
         return getPlanCard(planName)
                 .locator("li[class*='" + classSuffix + "']")

@@ -156,6 +156,11 @@ public class MultipleDomainHostingTest {
 
     // ==================== PLAN INCLUSIONS ==================== //
 
+    @Then("the {string} MDH plan inclusions heading displays {string}")
+    public void assertPlanInclusionsHeading(String planName, String expectedHeading) {
+        multipleDomainHostingPage.assertPlanInclusionsHeading(planName, expectedHeading);
+    }
+
     @Then("the {string} MDH plan includes {string}")
     public void assertPlanIncludesFeature(String planName, String feature) {
         multipleDomainHostingPage.assertPlanIncludesFeature(planName, feature);
