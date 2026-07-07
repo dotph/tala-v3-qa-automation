@@ -5,6 +5,7 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
 import com.microsoft.playwright.assertions.PlaywrightAssertions;
 import config.EnvConfig;
+import config.PricingBlockClasses;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -225,11 +226,6 @@ public class SingleDomainHostingPage {
 
     // ==================== PLAN INCLUSIONS ==================== //
 
-    // CSS module hash sits in the middle of the class name; the suffix is stable.
-    private static final String INCLUDED_CLASS_SUFFIX = "inclusionIncluded";
-    private static final String EXCLUDED_CLASS_SUFFIX = "inclusionExcluded";
-    private static final String EXCLUDED_ICON_CLASS_SUFFIX = "xIcon";
-
     private Locator getPlanFeatureItem(String planName, String feature, String classSuffix) {
         return getPlanCard(planName)
                 .locator("li[class*='" + classSuffix + "']")
@@ -238,7 +234,7 @@ public class SingleDomainHostingPage {
 
     public void assertPlanIncludesFeature(String planName, String feature) {
         log.info("Asserting [{}] plan includes feature: \"{}\"", planName, feature);
-        Locator item = getPlanFeatureItem(planName, feature, INCLUDED_CLASS_SUFFIX);
+        Locator item = getPlanFeatureItem(planName, feature, PricingBlockClasses.INCLUDED_SUFFIX);
         PlaywrightAssertions.assertThat(item).isVisible();
         // Exact-match guard: hasText normalizes whitespace and asserts equality,
         // preventing substring collisions like "40 GB" also matching "140 GB disk space".
@@ -248,10 +244,10 @@ public class SingleDomainHostingPage {
 
     public void assertPlanExcludesFeature(String planName, String feature) {
         log.info("Asserting [{}] plan excludes feature: \"{}\" (expecting X icon)", planName, feature);
-        Locator item = getPlanFeatureItem(planName, feature, EXCLUDED_CLASS_SUFFIX);
+        Locator item = getPlanFeatureItem(planName, feature, PricingBlockClasses.EXCLUDED_SUFFIX);
         PlaywrightAssertions.assertThat(item).isVisible();
         PlaywrightAssertions.assertThat(item).hasText(feature);
-        PlaywrightAssertions.assertThat(item.locator("svg[class*='" + EXCLUDED_ICON_CLASS_SUFFIX + "']")).isVisible();
+        PlaywrightAssertions.assertThat(item.locator("svg[class*='" + PricingBlockClasses.EXCLUDED_ICON + "']")).isVisible();
         log.info("PASSED: [{}] plan excludes \"{}\" (X icon present)", planName, feature);
     }
 }
