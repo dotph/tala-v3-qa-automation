@@ -8,35 +8,18 @@ HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
 REMOTE_NAME="$1"
 # $2 = remote URL (unused)
 
-# Drain stdin so the pipe doesn't hang
-cat > /dev/null
+# Capture stdin — git pipes one line per pushed ref:
+#   local_ref local_sha remote_ref remote_sha
+# Reading here (not draining to /dev/null) lets us transition the tickets
+# for the branches actually being pushed, not just whichever branch is at HEAD.
+PUSHED_REFS=$(cat)
 
 # ── Guard 1: only act on pushes to "origin" ─────────────────
 if [ "$REMOTE_NAME" != "origin" ]; then
   exit 0
 fi
 
-# ── Get current branch name ─────────────────────────────────
-BRANCH_NAME=$(git symbolic-ref --short HEAD 2>/dev/null) || exit 0
-
-# ── Guard 2: skip protected branches ────────────────────────
-case "$BRANCH_NAME" in
-  master|main|develop) exit 0 ;;
-esac
-
-# ── Guard 3: idempotency — skip if already transitioned ─────
-ALREADY_REVIEWED=$(git config --local "branch.${BRANCH_NAME}.jiraCodeReview" 2>/dev/null || echo "")
-if [ "$ALREADY_REVIEWED" = "true" ]; then
-  exit 0
-fi
-
-# ── Guard 4: skip if no ticket associated ────────────────────
-TICKET_KEY=$(git config --local "branch.${BRANCH_NAME}.jiraTicket" 2>/dev/null || echo "")
-if [ -z "$TICKET_KEY" ]; then
-  exit 0
-fi
-
-# ── Read Jira credentials ───────────────────────────────────
+# ── Read Jira credentials once ──────────────────────────────
 JIRA_BASE_URL=$(git config --local jira.baseUrl 2>/dev/null || echo "")
 JIRA_USER_EMAIL=$(git config --local jira.userEmail 2>/dev/null || echo "")
 JIRA_API_TOKEN=$(security find-generic-password \
@@ -48,18 +31,48 @@ if [ -z "$JIRA_BASE_URL" ] || [ -z "$JIRA_USER_EMAIL" ] || [ -z "$JIRA_API_TOKEN
   exit 0
 fi
 
-# ── Transition to "Code Review" ──────────────────────────────
+# ── Source shared helper (jira_transition + jira_curl) ──────
 source "${HOOKS_DIR}/jira-transition-helper"
 
-echo "[jira] Transitioning $TICKET_KEY to Code Review..."
-jira_transition "$TICKET_KEY" "^code review$"
+# ── Iterate each pushed ref ─────────────────────────────────
+# NOTE: pre-push runs BEFORE the push actually goes to the remote. If git
+# rejects the push (non-fast-forward, hook denial, etc.), the ticket will
+# already sit in Code Review. Documented trade-off; git lacks a post-push
+# hook and wrapping git-push would be too invasive for this repo.
+ZERO_SHA="0000000000000000000000000000000000000000"
 
-if [ $? -eq 0 ]; then
-  git config --local "branch.${BRANCH_NAME}.jiraCodeReview" "true"
-  echo "[jira] Status: Code Review"
-else
-  echo "[jira] WARNING: Could not transition to Code Review (non-blocking)"
-fi
+while IFS=' ' read -r LOCAL_REF LOCAL_SHA REMOTE_REF REMOTE_SHA; do
+  # Skip empty lines and branch deletions (local_sha is all zeros)
+  [ -z "$LOCAL_REF" ] && continue
+  [ "$LOCAL_SHA" = "$ZERO_SHA" ] && continue
+
+  # Only care about branches (refs/heads/*), not tags or other refs
+  case "$LOCAL_REF" in
+    refs/heads/*) BRANCH_NAME="${LOCAL_REF#refs/heads/}" ;;
+    *) continue ;;
+  esac
+
+  # Skip protected branches
+  case "$BRANCH_NAME" in
+    master|main|develop) continue ;;
+  esac
+
+  # Skip if no ticket associated
+  TICKET_KEY=$(git config --local "branch.${BRANCH_NAME}.jiraTicket" 2>/dev/null || echo "")
+  [ -z "$TICKET_KEY" ] && continue
+
+  # Skip if already transitioned to Code Review
+  ALREADY_REVIEWED=$(git config --local "branch.${BRANCH_NAME}.jiraCodeReview" 2>/dev/null || echo "")
+  [ "$ALREADY_REVIEWED" = "true" ] && continue
+
+  echo "[jira] Transitioning $TICKET_KEY ($BRANCH_NAME) to Code Review..."
+  if jira_transition "$TICKET_KEY" "^code review$"; then
+    git config --local "branch.${BRANCH_NAME}.jiraCodeReview" "true"
+    echo "[jira] Status: Code Review"
+  else
+    echo "[jira] WARNING: Could not transition $TICKET_KEY to Code Review (non-blocking)"
+  fi
+done <<< "$PUSHED_REFS"
 
 # Always exit 0 — never block the push
 exit 0

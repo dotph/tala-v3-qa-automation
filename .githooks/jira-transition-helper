@@ -2,6 +2,16 @@
 # Shared Jira transition helper — sourced by post-checkout and pre-push hooks.
 # Requires JIRA_BASE_URL, JIRA_USER_EMAIL, JIRA_API_TOKEN to be set by the caller.
 
+# ── jira_curl ────────────────────────────────────────────────
+# Wraps curl so the Jira credentials never enter argv (visible via `ps`).
+# The `user = ...` config is fed on stdin via `--config -`, so only the
+# non-secret flags (URL, headers, payload) appear in the process list.
+jira_curl() {
+  curl "$@" --config - <<CURLCFG
+user = "${JIRA_USER_EMAIL}:${JIRA_API_TOKEN}"
+CURLCFG
+}
+
 jira_transition() {
   local TICKET_KEY="$1"
   local TARGET_PATTERN="$2"
@@ -18,11 +28,10 @@ jira_transition() {
 
   # Step 1: GET available transitions
   local RESPONSE
-  RESPONSE=$(curl -sS -w "\n%{http_code}" \
+  RESPONSE=$(jira_curl -sS -w "\n%{http_code}" \
     -X GET \
     -H "Content-Type: application/json" \
-    -u "${JIRA_USER_EMAIL}:${JIRA_API_TOKEN}" \
-    "${JIRA_BASE_URL}/rest/api/3/issue/${TICKET_KEY}/transitions" 2>&1)
+    "${JIRA_BASE_URL}/rest/api/3/issue/${TICKET_KEY}/transitions" 2>/dev/null)
 
   local HTTP_CODE
   HTTP_CODE=$(echo "$RESPONSE" | tail -1)
@@ -52,11 +61,10 @@ jira_transition() {
 
   # Step 3: POST the transition
   local TRANS_RESPONSE
-  TRANS_RESPONSE=$(curl -sS -o /dev/null -w "%{http_code}" \
+  TRANS_RESPONSE=$(jira_curl -sS -o /dev/null -w "%{http_code}" \
     -X POST \
     -H "Content-Type: application/json" \
-    -u "${JIRA_USER_EMAIL}:${JIRA_API_TOKEN}" \
-    -d "{\"transition\":{\"id\":\"${TRANSITION_ID}\"}}" \
+    -d "$(jq -n --arg id "$TRANSITION_ID" '{transition:{id:$id}}')" \
     "${JIRA_BASE_URL}/rest/api/3/issue/${TICKET_KEY}/transitions" 2>/dev/null)
 
   if [ "$TRANS_RESPONSE" = "204" ]; then

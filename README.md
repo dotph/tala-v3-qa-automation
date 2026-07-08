@@ -45,10 +45,15 @@ git config --local jira.assigneeAccountId <your-atlassian-account-id>
 git config --local alias.jira-plan '!bash "$(git rev-parse --show-toplevel)/.githooks/jira-plan"'
 
 # 4. Store an Atlassian API token in macOS Keychain
-#    Generate at https://id.atlassian.com/manage-profile/security/api-tokens,
-#    click the copy button, then run (reads directly from clipboard):
-security add-generic-password -a "your.name@dot.ph" -s "jira-api-token" -w "$(pbpaste)" -U
+#    Generate at https://id.atlassian.com/manage-profile/security/api-tokens.
+#    `security` prompts for the token interactively so it never lands on
+#    another process's argv (visible to `ps`) or in shell history.
+security add-generic-password -a "your.name@dot.ph" -s "jira-api-token" -U -w
 ```
+
+After first use, macOS will prompt for Keychain access on every checkout/push. Click **Always Allow** on the prompt (or open **Keychain Access → jira-api-token → Access Control → Always allow access by these applications: security, curl**) to avoid the recurring popup.
+
+`git jira-plan` pipes the description you type through `claude -p` for a two-sentence rewrite before staging it. That text leaves your machine on its way to Anthropic's API — if the description is anything sensitive, cancel out of the prompt or answer with a placeholder and edit the ticket afterwards.
 
 Hooks never block git — they always `exit 0`. Missing config, an invalid token, or network failure just causes the ticket action to skip silently (a `[jira] WARNING:` line is printed). To disable, run `git config --local --unset core.hooksPath`.
 
