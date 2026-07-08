@@ -39,9 +39,20 @@ Feature: VPS Landing Page
     And the "One Stop Shop" VPS description includes "wide array of payment options"
 
   # ==================== HOSTING PLANS ==================== #
-  # NOTE: VPS plan cards have Select / ✓ Selected toggle buttons only; there is
-  # no per-card "Get X" CTA link, so selection is asserted directly on the
-  # card's toggle button via aria-pressed + button text.
+  # NOTE: Three per-plan behaviours SDH / MDH assert are intentionally absent
+  # here because /vps genuinely doesn't render them (verified live on mdot.ph):
+  #   1. No per-card "Get X" CTA link. Selection is asserted directly on the
+  #      card's Select / ✓ Selected toggle via aria-pressed + button text.
+  #      (SDH / MDH additionally assert the page-level CTA reflects the
+  #      selected plan — no equivalent CTA exists on /vps.)
+  #   2. No plan description copy between the plan title and the price row.
+  #      SDH cards carry lines like "Everything you need to get online"; VPS
+  #      cards go straight from h3 → price. Nothing to assert.
+  #   3. No excluded / dimmed inclusion rows. All rows across the three plans
+  #      render as ✓ Included, so there are no `… plan excludes "X"`
+  #      assertions here — that's the safety net that caught TALA3-71 on MDH
+  #      (MD2 Free SSL drift), not applicable to VPS today.
+  # Re-evaluate any of the three if the /vps design changes.
 
   @vps @smoke @pricing
   Scenario: Plans section title displays correct copy

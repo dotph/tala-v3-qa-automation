@@ -118,12 +118,24 @@ public class VpsPage {
 
     public void assertGetFullControlSubDescriptionContains(String subHeading, String fragment) {
         log.info("Asserting [{}] Get full control description contains: \"{}\"", subHeading, fragment);
-        // The description <p> is a sibling of its h3, so climb one level to
-        // scope containsText to the individual sub-feature block.
-        Locator container = page.getByRole(AriaRole.HEADING,
-                        new Page.GetByRoleOptions().setLevel(3).setName(subHeading))
+        // Scope to the "Get full control..." section (like the sibling
+        // assertGetFullControlSubHeadingDisplays does), then anchor to the
+        // description <p> that immediately follows the sub-heading h3 via
+        // following-sibling::p[1]. The obvious xpath=.. climb happens to
+        // work today (each sub-feature lives in its own IMG+H3+P group,
+        // verified live), but if the layout ever flattens to a single grid
+        // parent for all four sub-features, xpath=.. would resolve to that
+        // shared container and containsText would silently match a fragment
+        // from any sibling sub-feature (e.g. cooling copy under "Security
+        // Check"). following-sibling::p[1] pins the assertion to the exact
+        // description belonging to this h3 regardless of wrapper shape.
+        Locator sectionRoot = page.getByRole(AriaRole.HEADING,
+                        new Page.GetByRoleOptions().setLevel(2).setName("Get full control of your site"))
                 .locator("xpath=..");
-        PlaywrightAssertions.assertThat(container).containsText(fragment);
+        Locator description = sectionRoot.getByRole(AriaRole.HEADING,
+                        new Locator.GetByRoleOptions().setLevel(3).setName(subHeading))
+                .locator("xpath=following-sibling::p[1]");
+        PlaywrightAssertions.assertThat(description).containsText(fragment);
         log.info("PASSED: [{}] description contains \"{}\"", subHeading, fragment);
     }
 
@@ -146,6 +158,10 @@ public class VpsPage {
 
     public void assertPlanCardAtPosition(int position, String expectedPlanName) {
         log.info("Asserting plan card at position {}: \"{}\"", position, expectedPlanName);
+        // .nth(position - 1): feature file passes 1-indexed positions,
+        // Playwright's nth() is 0-indexed. Scoped to pricingSection() so
+        // navbar / footer h3s can't shift the index (per conventions.md
+        // "no first()/nth() without a comment explaining the match").
         Locator planTitleAtPosition = pricingSection()
                 .getByRole(AriaRole.HEADING, new Locator.GetByRoleOptions().setLevel(3))
                 .nth(position - 1);
@@ -169,14 +185,21 @@ public class VpsPage {
 
     public void assertPlanPrice(String planName, String expectedPrice) {
         log.info("Asserting [{}] plan price: \"{}\"", planName, expectedPrice);
-        // The card DOM renders "$", the numeric portion, and a footnote "*" in
-        // three separate spans, which Playwright normalizes to "$ 175.00 *".
-        // A single containsText("$175.00") would fail on that whitespace, so
-        // callers pass the numeric portion only (e.g. "175.00") and we verify
-        // the "$" currency marker on the same card in the same step.
-        Locator card = getPlanCard(planName);
-        PlaywrightAssertions.assertThat(card).containsText(expectedPrice);
-        PlaywrightAssertions.assertThat(card).containsText("$");
+        // The card DOM renders "$", the numeric portion, and a footnote "*"
+        // in three separate spans inside a __priceRow container. Playwright's
+        // containsText uses textContent (not innerText), which concatenates
+        // adjacent inline children with no whitespace — the row reads as
+        // "$175.00*". Scoping the assertion to the priceRow and using
+        // hasText (exact whitespace-normalized equality on the row's full
+        // text) gives us two guarantees a card-level containsText cannot:
+        //   1. Can't be satisfied by any "$" / numeric substring elsewhere
+        //      on the card. A card-level containsText("$175.00") would also
+        //      pass on a stray "$1,175.00" appearing elsewhere; the scoped
+        //      hasText matches the row's full text or nothing.
+        //   2. Catches drift in the currency symbol, the amount, or the
+        //      footnote-asterisk marker in one assertion.
+        Locator priceRow = getPlanCard(planName).locator("[class*='priceRow']");
+        PlaywrightAssertions.assertThat(priceRow).hasText("$" + expectedPrice + "*");
         log.info("PASSED: [{}] plan price \"{}\"", planName, expectedPrice);
     }
 
@@ -217,6 +240,11 @@ public class VpsPage {
 
     public void assertTaxNoteDisplays(String expectedText) {
         log.info("Asserting tax note displays: \"{}\"", expectedText);
+        // .first() disambiguates the SSR + hydration duplicate that emits
+        // two identical tax-note <p>s (same pattern the hero subheadline
+        // and inquiry form hit). Both copies always render the same text,
+        // so asserting on the first proves the visible instance too (per
+        // conventions.md "no first()/nth() without a comment").
         PlaywrightAssertions.assertThat(page.getByText(expectedText).first()).isVisible();
         log.info("PASSED: tax note displays \"{}\"", expectedText);
     }
