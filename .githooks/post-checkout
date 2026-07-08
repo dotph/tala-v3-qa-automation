@@ -1,0 +1,250 @@
+#!/usr/bin/env bash
+# No set -e — hook must never block branch creation; handle errors explicitly
+
+# Resolve this hook's directory so `source` works regardless of core.hooksPath.
+HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# ── Arguments from git ──────────────────────────────────────
+PREV_REF="$1"
+NEW_REF="$2"
+BRANCH_FLAG="$3" # 1 = branch checkout, 0 = file checkout
+
+# ── Guard 1: only act on branch checkouts ───────────────────
+[ "$BRANCH_FLAG" -eq 1 ] || exit 0
+
+# ── Get current branch name ─────────────────────────────────
+BRANCH_NAME=$(git symbolic-ref --short HEAD 2>/dev/null) || exit 0
+
+# ── Guard 2: skip protected branches ────────────────────────
+case "$BRANCH_NAME" in
+  master|main|develop) exit 0 ;;
+esac
+
+# ── Auto-Done: close the previous branch's ticket if its PR is merged ───
+# Fires for every branch checkout (incl. `git checkout -b`), before any
+# new-ticket creation below. Skipped silently when there's nothing to close.
+PREV_BRANCH=$(git rev-parse --abbrev-ref @{-1} 2>/dev/null || echo "")
+case "$PREV_BRANCH" in
+  master|main|develop|HEAD|"")
+    : # no ticket-bearing previous branch — skip
+    ;;
+  *)
+    PREV_TICKET=$(git config --local "branch.${PREV_BRANCH}.jiraTicket" 2>/dev/null || echo "")
+    if [ -n "$PREV_TICKET" ]; then
+      # Verify the PR for the previous branch is actually merged before closing.
+      # gh CLI required; if missing or offline, skip rather than risk false-Done.
+      if command -v gh >/dev/null 2>&1; then
+        PREV_MERGED_PR=$(gh pr list --head "$PREV_BRANCH" --state merged --json number --jq '.[0].number' 2>/dev/null || echo "")
+        if [ -n "$PREV_MERGED_PR" ] && [ "$PREV_MERGED_PR" != "null" ]; then
+          # Need Jira creds for the transition helper.
+          JIRA_BASE_URL=$(git config --local jira.baseUrl 2>/dev/null || echo "")
+          JIRA_USER_EMAIL=$(git config --local jira.userEmail 2>/dev/null || echo "")
+          JIRA_API_TOKEN=$(security find-generic-password \
+            -a "$JIRA_USER_EMAIL" \
+            -s "jira-api-token" \
+            -w 2>/dev/null || echo "")
+          if [ -n "$JIRA_BASE_URL" ] && [ -n "$JIRA_USER_EMAIL" ] && [ -n "$JIRA_API_TOKEN" ]; then
+            source "${HOOKS_DIR}/jira-transition-helper"
+            if jira_transition "$PREV_TICKET" "^done$"; then
+              echo "[jira] Closed $PREV_TICKET (from branch $PREV_BRANCH, PR #$PREV_MERGED_PR merged) → Done"
+            else
+              echo "[jira] WARNING: Could not transition $PREV_TICKET to Done (non-blocking)"
+            fi
+          fi
+        fi
+      fi
+    fi
+    ;;
+esac
+
+# ── Guard 3: detect NEW branch via known-branches file ──────
+# If the branch is already in the known-branches file, it's not new.
+KNOWN_FILE="$(git rev-parse --git-dir)/jira-known-branches"
+touch "$KNOWN_FILE"
+if grep -qxF "$BRANCH_NAME" "$KNOWN_FILE"; then
+  exit 0
+fi
+
+# ── Guard 4: idempotency — skip if ticket already created ───
+EXISTING_TICKET=$(git config --local "branch.${BRANCH_NAME}.jiraTicket" 2>/dev/null || echo "")
+if [ -n "$EXISTING_TICKET" ]; then
+  echo "[jira] Ticket already exists: $EXISTING_TICKET"
+  exit 0
+fi
+
+# ── Read Jira config from local git config ───────────────────
+JIRA_BASE_URL=$(git config --local jira.baseUrl 2>/dev/null || echo "")
+JIRA_PROJECT_KEY=$(git config --local jira.projectKey 2>/dev/null || echo "")
+JIRA_USER_EMAIL=$(git config --local jira.userEmail 2>/dev/null || echo "")
+JIRA_EPIC_KEY=$(git config --local jira.epicKey 2>/dev/null || echo "")
+JIRA_ASSIGNEE_ID=$(git config --local jira.assigneeAccountId 2>/dev/null || echo "")
+
+if [ -z "$JIRA_BASE_URL" ] || [ -z "$JIRA_PROJECT_KEY" ] || [ -z "$JIRA_USER_EMAIL" ]; then
+  echo "[jira] WARNING: Missing jira config (baseUrl/projectKey/userEmail). Skipping ticket creation."
+  exit 0
+fi
+
+# ── Retrieve API token from macOS Keychain ───────────────────
+JIRA_API_TOKEN=$(security find-generic-password \
+  -a "$JIRA_USER_EMAIL" \
+  -s "jira-api-token" \
+  -w 2>/dev/null || echo "")
+
+if [ -z "$JIRA_API_TOKEN" ]; then
+  echo "[jira] WARNING: No Jira API token found in Keychain. Skipping ticket creation."
+  exit 0
+fi
+
+# ── Read staged ticket or derive from branch name ────────────
+GIT_DIR=$(git rev-parse --git-dir)
+STAGED_FILE="${GIT_DIR}/jira-staged-ticket.json"
+DESCRIPTION_TEXT=""
+
+if [ -f "$STAGED_FILE" ]; then
+  # Staged ticket exists — use planned context
+  SUMMARY=$(jq -r '.summary' "$STAGED_FILE" 2>/dev/null || echo "")
+  DESCRIPTION_TEXT=$(jq -r '.description' "$STAGED_FILE" 2>/dev/null || echo "")
+  rm -f "$STAGED_FILE"
+
+  if [ -z "$SUMMARY" ] || [ "$SUMMARY" = "null" ]; then
+    SUMMARY=""
+  fi
+fi
+
+if [ -z "$SUMMARY" ]; then
+  # No staged ticket — fall back to deriving from branch name
+  if [[ "$BRANCH_NAME" == */* ]]; then
+    SLUG="${BRANCH_NAME#*/}"
+  else
+    SLUG="$BRANCH_NAME"
+  fi
+
+  SUBJECT=$(echo "$SLUG" | \
+    sed 's/-/ /g' | \
+    awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2)}1')
+
+  SUMMARY="QA Automation (TALA v3) | ${SUBJECT}"
+fi
+
+if [ -z "$DESCRIPTION_TEXT" ] || [ "$DESCRIPTION_TEXT" = "null" ]; then
+  DESCRIPTION_TEXT="Auto-created from branch: ${BRANCH_NAME}"
+fi
+
+# ── Build JSON payload ───────────────────────────────────────
+if [ -n "$JIRA_EPIC_KEY" ]; then
+  PAYLOAD=$(jq -n \
+    --arg project "$JIRA_PROJECT_KEY" \
+    --arg summary "$SUMMARY" \
+    --arg epicKey "$JIRA_EPIC_KEY" \
+    --arg desc "$DESCRIPTION_TEXT" \
+    '{
+      fields: {
+        project: { key: $project },
+        summary: $summary,
+        issuetype: { name: "Story" },
+        parent: { key: $epicKey },
+        description: {
+          type: "doc",
+          version: 1,
+          content: [{
+            type: "paragraph",
+            content: [{
+              type: "text",
+              text: $desc
+            }]
+          }]
+        }
+      }
+    }')
+else
+  PAYLOAD=$(jq -n \
+    --arg project "$JIRA_PROJECT_KEY" \
+    --arg summary "$SUMMARY" \
+    --arg desc "$DESCRIPTION_TEXT" \
+    '{
+      fields: {
+        project: { key: $project },
+        summary: $summary,
+        issuetype: { name: "Story" },
+        description: {
+          type: "doc",
+          version: 1,
+          content: [{
+            type: "paragraph",
+            content: [{
+              type: "text",
+              text: $desc
+            }]
+          }]
+        }
+      }
+    }')
+fi
+
+# ── Call Jira REST API v3 ────────────────────────────────────
+RESPONSE=$(curl -sS -w "\n%{http_code}" \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -u "${JIRA_USER_EMAIL}:${JIRA_API_TOKEN}" \
+  -d "$PAYLOAD" \
+  "${JIRA_BASE_URL}/rest/api/3/issue" 2>&1)
+
+HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+BODY=$(echo "$RESPONSE" | sed '$d')
+
+# ── Handle response ──────────────────────────────────────────
+if [ "$HTTP_CODE" = "201" ]; then
+  TICKET_KEY=$(echo "$BODY" | jq -r '.key')
+  TICKET_URL="${JIRA_BASE_URL}/browse/${TICKET_KEY}"
+
+  # Store ticket key in local branch config (idempotency marker)
+  git config --local "branch.${BRANCH_NAME}.jiraTicket" "$TICKET_KEY"
+
+  # Assign ticket if assignee is configured
+  if [ -n "$JIRA_ASSIGNEE_ID" ]; then
+    ASSIGN_CODE=$(curl -sS -o /dev/null -w "%{http_code}" \
+      -X PUT \
+      -H "Content-Type: application/json" \
+      -u "${JIRA_USER_EMAIL}:${JIRA_API_TOKEN}" \
+      -d "{\"accountId\": \"${JIRA_ASSIGNEE_ID}\"}" \
+      "${JIRA_BASE_URL}/rest/api/3/issue/${TICKET_KEY}/assignee" 2>/dev/null)
+
+    if [ "$ASSIGN_CODE" = "204" ]; then
+      ASSIGN_MSG="assigned"
+    else
+      ASSIGN_MSG="assignment failed (HTTP $ASSIGN_CODE)"
+    fi
+  else
+    ASSIGN_MSG="no assignee configured"
+  fi
+
+  # ── Auto-transition: Backlog → To-Do → Work in progress ────
+  source "${HOOKS_DIR}/jira-transition-helper"
+  jira_transition "$TICKET_KEY" "^to-do$"
+  jira_transition "$TICKET_KEY" "^work in progress$"
+  if [ $? -eq 0 ]; then
+    STATUS_MSG="Work in progress"
+  else
+    STATUS_MSG="transition failed (non-blocking)"
+  fi
+
+  echo ""
+  echo "[jira] Created $TICKET_KEY — $TICKET_URL"
+  echo "[jira] Summary: $SUMMARY"
+  echo "[jira] Epic: ${JIRA_EPIC_KEY:-none}"
+  echo "[jira] Assignee: ${ASSIGN_MSG}"
+  echo "[jira] Status: ${STATUS_MSG}"
+  echo ""
+else
+  echo ""
+  echo "[jira] WARNING: Failed to create Jira ticket (HTTP $HTTP_CODE)"
+  echo "[jira] Response: $BODY"
+  echo "[jira] Branch creation succeeded; ticket creation failed."
+  echo ""
+fi
+
+# ── Mark branch as known (prevents future re-triggers) ──────
+echo "$BRANCH_NAME" >> "$KNOWN_FILE"
+
+# Always exit 0 — never block branch creation
+exit 0

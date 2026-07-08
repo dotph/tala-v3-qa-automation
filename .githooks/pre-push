@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# No set -e — hook must never block push; handle errors explicitly
+
+# Resolve this hook's directory so `source` works regardless of core.hooksPath.
+HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# ── Arguments from git ──────────────────────────────────────
+REMOTE_NAME="$1"
+# $2 = remote URL (unused)
+
+# Drain stdin so the pipe doesn't hang
+cat > /dev/null
+
+# ── Guard 1: only act on pushes to "origin" ─────────────────
+if [ "$REMOTE_NAME" != "origin" ]; then
+  exit 0
+fi
+
+# ── Get current branch name ─────────────────────────────────
+BRANCH_NAME=$(git symbolic-ref --short HEAD 2>/dev/null) || exit 0
+
+# ── Guard 2: skip protected branches ────────────────────────
+case "$BRANCH_NAME" in
+  master|main|develop) exit 0 ;;
+esac
+
+# ── Guard 3: idempotency — skip if already transitioned ─────
+ALREADY_REVIEWED=$(git config --local "branch.${BRANCH_NAME}.jiraCodeReview" 2>/dev/null || echo "")
+if [ "$ALREADY_REVIEWED" = "true" ]; then
+  exit 0
+fi
+
+# ── Guard 4: skip if no ticket associated ────────────────────
+TICKET_KEY=$(git config --local "branch.${BRANCH_NAME}.jiraTicket" 2>/dev/null || echo "")
+if [ -z "$TICKET_KEY" ]; then
+  exit 0
+fi
+
+# ── Read Jira credentials ───────────────────────────────────
+JIRA_BASE_URL=$(git config --local jira.baseUrl 2>/dev/null || echo "")
+JIRA_USER_EMAIL=$(git config --local jira.userEmail 2>/dev/null || echo "")
+JIRA_API_TOKEN=$(security find-generic-password \
+  -a "$JIRA_USER_EMAIL" \
+  -s "jira-api-token" \
+  -w 2>/dev/null || echo "")
+
+if [ -z "$JIRA_BASE_URL" ] || [ -z "$JIRA_USER_EMAIL" ] || [ -z "$JIRA_API_TOKEN" ]; then
+  exit 0
+fi
+
+# ── Transition to "Code Review" ──────────────────────────────
+source "${HOOKS_DIR}/jira-transition-helper"
+
+echo "[jira] Transitioning $TICKET_KEY to Code Review..."
+jira_transition "$TICKET_KEY" "^code review$"
+
+if [ $? -eq 0 ]; then
+  git config --local "branch.${BRANCH_NAME}.jiraCodeReview" "true"
+  echo "[jira] Status: Code Review"
+else
+  echo "[jira] WARNING: Could not transition to Code Review (non-blocking)"
+fi
+
+# Always exit 0 — never block the push
+exit 0

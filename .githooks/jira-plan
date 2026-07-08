@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# Usage: git jira-plan
+# Interactively plan a Jira ticket before creating a branch.
+# Writes context to .git/jira-staged-ticket.json for the post-checkout hook.
+
+GIT_DIR=$(git rev-parse --git-dir 2>/dev/null)
+if [ -z "$GIT_DIR" ]; then
+  echo "[jira] ERROR: Not in a git repository."
+  exit 1
+fi
+
+STAGED_FILE="${GIT_DIR}/jira-staged-ticket.json"
+
+# Check if a ticket is already staged
+if [ -f "$STAGED_FILE" ]; then
+  EXISTING=$(jq -r '.summary' "$STAGED_FILE" 2>/dev/null)
+  echo "[jira] A ticket is already staged: $EXISTING"
+  printf "Overwrite? (y/N): "
+  read -r CONFIRM
+  if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
+    echo "[jira] Cancelled."
+    exit 0
+  fi
+fi
+
+# Prompt for title
+echo ""
+printf "Title (after \"QA Automation (TALA v3) | \"): "
+read -r TITLE_INPUT
+
+if [ -z "$TITLE_INPUT" ]; then
+  echo "[jira] ERROR: Title cannot be empty."
+  exit 1
+fi
+
+SUMMARY="QA Automation (TALA v3) | ${TITLE_INPUT}"
+
+# Prompt for description
+echo ""
+printf "Description: "
+read -r DESCRIPTION
+
+if [ -z "$DESCRIPTION" ]; then
+  DESCRIPTION="No description provided."
+fi
+
+# Enhance description using Claude
+if [ "$DESCRIPTION" != "No description provided." ]; then
+  echo ""
+  echo "[jira] Enhancing description..."
+  ENHANCED=$(claude -p --output-format text "You are a QA engineer writing Jira ticket descriptions. Rewrite the following into a professional, clear, and concise description suitable for a Jira story. Keep it to 2-3 sentences max. Only output the enhanced description text, nothing else.
+
+Input: ${DESCRIPTION}" 2>/dev/null)
+
+  if [ $? -eq 0 ] && [ -n "$ENHANCED" ]; then
+    DESCRIPTION="$ENHANCED"
+    echo "[jira] Enhanced description: $DESCRIPTION"
+  else
+    echo "[jira] Could not enhance description, using original."
+  fi
+fi
+
+# Write staging file
+jq -n \
+  --arg summary "$SUMMARY" \
+  --arg description "$DESCRIPTION" \
+  '{ summary: $summary, description: $description }' > "$STAGED_FILE"
+
+echo ""
+echo "[jira] Staged ticket:"
+echo "  Summary:     $SUMMARY"
+echo "  Description: $DESCRIPTION"
+echo ""
+echo "[jira] Now create your branch:"
+echo "  git checkout -b feature/your-branch-name"
+echo ""

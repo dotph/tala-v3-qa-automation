@@ -17,6 +17,41 @@ Built with **Playwright Java 1.45**, **TestNG 7**, **Cucumber 7**, and **Allure 
       -Dexec.args="install chromium"
   ```
 
+## Jira automation hooks (optional, macOS)
+
+`.githooks/` contains git hooks that auto-manage a Jira Story alongside each branch. Everything is per-clone opt-in — nothing runs unless you enable it.
+
+| Trigger | Effect |
+|---|---|
+| `git checkout -b <name>` | Creates Story under the configured epic, assigns to you, transitions to *Work in progress* |
+| `git push origin <name>` | Transitions ticket to *Code Review* |
+| `git checkout` away from a branch whose PR is merged | Transitions that ticket to *Done* (uses `gh` CLI to verify the PR is merged first) |
+| `git jira-plan` (alias) | Interactively stages a summary + Claude-enhanced description for the next `checkout -b` |
+
+First-time setup on a fresh clone:
+
+```bash
+# 1. Point git at the tracked hooks directory
+git config --local core.hooksPath .githooks
+
+# 2. Jira config (values differ per user/team)
+git config --local jira.baseUrl https://dotph.atlassian.net
+git config --local jira.projectKey QATEAM
+git config --local jira.userEmail your.name@dot.ph
+git config --local jira.epicKey QATEAM-970
+git config --local jira.assigneeAccountId <your-atlassian-account-id>
+
+# 3. Register the git jira-plan alias
+git config --local alias.jira-plan '!bash "$(git rev-parse --show-toplevel)/.githooks/jira-plan"'
+
+# 4. Store an Atlassian API token in macOS Keychain
+#    Generate at https://id.atlassian.com/manage-profile/security/api-tokens,
+#    click the copy button, then run (reads directly from clipboard):
+security add-generic-password -a "your.name@dot.ph" -s "jira-api-token" -w "$(pbpaste)" -U
+```
+
+Hooks never block git — they always `exit 0`. Missing config, an invalid token, or network failure just causes the ticket action to skip silently (a `[jira] WARNING:` line is printed). To disable, run `git config --local --unset core.hooksPath`.
+
 ## Running tests
 
 | Goal | Command |
