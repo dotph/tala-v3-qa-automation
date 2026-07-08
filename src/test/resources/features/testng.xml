@@ -20,4 +20,9 @@
             <class name="runner.MultipleDomainHostingRunner"/>
         </classes>
     </test>
+    <test name="VPS Landing Page">
+        <classes>
+            <class name="runner.VpsRunner"/>
+        </classes>
+    </test>
 </suite>

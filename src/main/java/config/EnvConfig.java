@@ -41,4 +41,8 @@ public class EnvConfig {
     public static String getMultipleDomainHostingUrl() {
         return getBaseUrl() + "/multiple-domain-hosting";
     }
+
+    public static String getVpsUrl() {
+        return getBaseUrl() + "/vps";
+    }
 }
