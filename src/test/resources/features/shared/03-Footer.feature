@@ -1,9 +1,11 @@
-Feature: Footer
-  Verify the copies and links on the footer.
+Feature: Footer (shared across landing pages)
+  Verify the copies and links on the footer are consistent regardless of
+  which landing page the user is on. The footer is a global component;
+  the only per-page difference is the Background URL.
 
   @footer @smoke
-  Scenario: Footer displays correct copies and links
-    Given the user navigates to the cPanel Hosting page
+  Scenario Outline: Footer displays correct copies and links on <page>
+    Given the user navigates to <page>
 
     # ==================== DOMAINS COLUMN ==================== #
     Then the footer section heading displays "Domains"
@@ -56,3 +58,9 @@ Feature: Footer
     And the footer link "Privacy Policy Statement" links to "/privacy-policy"
     And the footer link displays "Policies"
     And the footer link "Policies" links to "/policies"
+
+    Examples:
+      | page                             |
+      | the cPanel Hosting page          |
+      | the Single Domain Hosting page   |
+      | the Multiple Domain Hosting page |

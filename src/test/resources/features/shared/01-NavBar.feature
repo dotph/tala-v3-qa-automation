@@ -1,9 +1,11 @@
-Feature: Navigation Bar
-  Verify the copies and links on the navigation bar.
+Feature: Navigation Bar (shared across landing pages)
+  Verify the copies and links on the navigation bar are consistent
+  regardless of which landing page the user is on. The nav is a global
+  component; the only per-page difference is the Background URL.
 
   @navigation @smoke
-  Scenario: Navigation bar displays correct copies and links
-    Given the user navigates to the cPanel Hosting page
+  Scenario Outline: Navigation bar displays correct copies and links on <page>
+    Given the user navigates to <page>
 
     # ==================== HEADER ==================== #
     Then the dotPH logo is visible
@@ -76,3 +78,9 @@ Feature: Navigation Bar
     And the nav link "Careers" is displayed
     And the nav link "Careers" links to "/careers"
     When the user closes the dropdown
+
+    Examples:
+      | page                             |
+      | the cPanel Hosting page          |
+      | the Single Domain Hosting page   |
+      | the Multiple Domain Hosting page |

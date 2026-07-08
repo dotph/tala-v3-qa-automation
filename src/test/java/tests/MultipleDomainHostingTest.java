@@ -66,6 +66,11 @@ public class MultipleDomainHostingTest {
         multipleDomainHostingPage.assertPlanTitleDisplays(expectedTitle);
     }
 
+    @Then("the MDH plan card at position {int} is {string}")
+    public void assertPlanCardAtPosition(int position, String expectedPlanName) {
+        multipleDomainHostingPage.assertPlanCardAtPosition(position, expectedPlanName);
+    }
+
     @Then("the {string} MDH plan displays the monthly price")
     public void assertPlanMonthlyPrice(String planName) {
         BigDecimal price = MultipleDomainHostingPlan.fromLabel(planName).getMonthlyPrice();
@@ -112,12 +117,22 @@ public class MultipleDomainHostingTest {
         multipleDomainHostingPage.assertCtaReflectsPlan(planName);
     }
 
+    @Then("the {string} MDH CTA button links to {string}")
+    public void assertCtaHref(String planName, String expectedHref) {
+        multipleDomainHostingPage.assertCtaHrefForPlan(planName, expectedHref);
+    }
+
     @Then("the MDH tax note displays {string}")
     public void assertTaxNote(String expectedText) {
         multipleDomainHostingPage.assertTaxNoteDisplays(expectedText);
     }
 
     // ==================== PLAN INCLUSIONS ==================== //
+
+    @Then("the {string} MDH plan inclusions heading displays {string}")
+    public void assertPlanInclusionsHeading(String planName, String expectedHeading) {
+        multipleDomainHostingPage.assertPlanInclusionsHeading(planName, expectedHeading);
+    }
 
     @Then("the {string} MDH plan includes {string}")
     public void assertPlanIncludesFeature(String planName, String feature) {

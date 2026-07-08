@@ -66,6 +66,11 @@ public class SingleDomainHostingTest {
         singleDomainHostingPage.assertPlanTitleDisplays(expectedTitle);
     }
 
+    @Then("the SDH plan card at position {int} is {string}")
+    public void assertPlanCardAtPosition(int position, String expectedPlanName) {
+        singleDomainHostingPage.assertPlanCardAtPosition(position, expectedPlanName);
+    }
+
     @Then("the {string} SDH plan displays the monthly price")
     public void assertPlanMonthlyPrice(String planName) {
         BigDecimal price = SingleDomainHostingPlan.fromLabel(planName).getMonthlyPrice();
@@ -112,56 +117,30 @@ public class SingleDomainHostingTest {
         singleDomainHostingPage.assertCtaReflectsPlan(planName);
     }
 
-    @Then("the {string} SDH plan includes its domain limit")
-    public void assertPlanDomains(String planName) {
-        String expected = SingleDomainHostingPlan.fromLabel(planName).getDomains();
-        singleDomainHostingPage.assertPlanSpec(planName, expected);
-    }
-
-    @Then("the {string} SDH plan includes its disk space")
-    public void assertPlanDiskSpace(String planName) {
-        String expected = SingleDomainHostingPlan.fromLabel(planName).getDiskSpace();
-        singleDomainHostingPage.assertPlanSpec(planName, expected);
-    }
-
-    @Then("the {string} SDH plan includes its bandwidth")
-    public void assertPlanBandwidth(String planName) {
-        String expected = SingleDomainHostingPlan.fromLabel(planName).getBandwidth();
-        singleDomainHostingPage.assertPlanSpec(planName, expected);
-    }
-
-    @Then("the {string} SDH plan includes its subdomain limit")
-    public void assertPlanSubdomains(String planName) {
-        String expected = SingleDomainHostingPlan.fromLabel(planName).getSubdomains();
-        singleDomainHostingPage.assertPlanSpec(planName, expected);
-    }
-
-    @Then("the {string} SDH plan includes its email account limit")
-    public void assertPlanEmailAccounts(String planName) {
-        String expected = SingleDomainHostingPlan.fromLabel(planName).getEmailAccounts();
-        singleDomainHostingPage.assertPlanSpec(planName, expected);
-    }
-
-    @Then("the {string} SDH plan includes its mailing list limit")
-    public void assertPlanMailingLists(String planName) {
-        String expected = SingleDomainHostingPlan.fromLabel(planName).getMailingLists();
-        singleDomainHostingPage.assertPlanSpec(planName, expected);
-    }
-
-    @Then("the {string} SDH plan includes its SSL coverage")
-    public void assertPlanSslCoverage(String planName) {
-        String expected = SingleDomainHostingPlan.fromLabel(planName).getSslCoverage();
-        singleDomainHostingPage.assertPlanSpec(planName, expected);
-    }
-
-    @Then("the {string} SDH plan Free SSL indicator matches its plan")
-    public void assertPlanFreeSslIndicator(String planName) {
-        boolean included = SingleDomainHostingPlan.fromLabel(planName).isFreeSslIncluded();
-        singleDomainHostingPage.assertPlanFreeSslIndicator(planName, included);
+    @Then("the {string} SDH CTA button links to {string}")
+    public void assertCtaHref(String planName, String expectedHref) {
+        singleDomainHostingPage.assertCtaHrefForPlan(planName, expectedHref);
     }
 
     @Then("the SDH tax note displays {string}")
     public void assertTaxNote(String expectedText) {
         singleDomainHostingPage.assertTaxNoteDisplays(expectedText);
+    }
+
+    // ==================== PLAN INCLUSIONS ==================== //
+
+    @Then("the {string} SDH plan inclusions heading displays {string}")
+    public void assertPlanInclusionsHeading(String planName, String expectedHeading) {
+        singleDomainHostingPage.assertPlanInclusionsHeading(planName, expectedHeading);
+    }
+
+    @Then("the {string} SDH plan includes {string}")
+    public void assertPlanIncludesFeature(String planName, String feature) {
+        singleDomainHostingPage.assertPlanIncludesFeature(planName, feature);
+    }
+
+    @Then("the {string} SDH plan excludes {string}")
+    public void assertPlanExcludesFeature(String planName, String feature) {
+        singleDomainHostingPage.assertPlanExcludesFeature(planName, feature);
     }
 }

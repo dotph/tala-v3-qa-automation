@@ -12,12 +12,35 @@ Feature: Multiple Domain Hosting Landing Page
     And the MDH See Pricing button displays "See Pricing"
     And the MDH See Pricing button links to "#pricing"
     When the user clicks the MDH See Pricing button
-    Then the MDH pricing section is visible in the viewport
+    Then the URL hash is "#pricing"
+    And the MDH pricing section is visible in the viewport
 
   # ==================== HOSTING PLANS ==================== #
+  # NOTE (QATEAM-970 item #3): per-card "Get MDx" link CTAs are not part of the
+  # current MDH design (only cPanel has them). The page-level CTA is asserted via
+  # `CTA button reflects the "X" plan` and `CTA button links to`. Each card's
+  # Select / ✓ Selected button is covered by the default-selection and
+  # plan-selection scenarios (aria-pressed + button text).
+
   @multiple-domain-hosting @smoke @pricing
   Scenario: Plans section title displays correct copy
     Then the MDH plans section title displays "Choose Your Plan"
+
+  @multiple-domain-hosting @sanity @pricing @plan-order
+  Scenario: Plan cards appear in the correct order
+    Then the MDH plan card at position 1 is "MD1"
+    And the MDH plan card at position 2 is "MD2"
+    And the MDH plan card at position 3 is "MD3"
+    And the MDH plan card at position 4 is "MD4"
+    And the MDH plan card at position 5 is "MD5"
+
+  @multiple-domain-hosting @sanity @pricing @inclusions-heading
+  Scenario: Every plan card shows the inclusions heading
+    Then the "MD1" MDH plan inclusions heading displays "What's included:"
+    And the "MD2" MDH plan inclusions heading displays "What's included:"
+    And the "MD3" MDH plan inclusions heading displays "What's included:"
+    And the "MD4" MDH plan inclusions heading displays "What's included:"
+    And the "MD5" MDH plan inclusions heading displays "What's included:"
 
   @multiple-domain-hosting @smoke @pricing @default-selection
   Scenario: MD3 plan is selected by default
@@ -27,6 +50,7 @@ Feature: Multiple Domain Hosting Landing Page
     And the "MD4" MDH plan is not selected by default
     And the "MD5" MDH plan is not selected by default
     And the MDH CTA button reflects the "MD3" plan
+    And the "MD3" MDH CTA button links to "#"
 
   @multiple-domain-hosting @sanity @pricing @plan-selection
   Scenario: User can select the MD1 plan
@@ -37,6 +61,7 @@ Feature: Multiple Domain Hosting Landing Page
     And the "MD4" MDH plan is in the unselected state
     And the "MD5" MDH plan is in the unselected state
     And the MDH CTA button reflects the "MD1" plan
+    And the "MD1" MDH CTA button links to "#"
 
   @multiple-domain-hosting @sanity @pricing @plan-selection
   Scenario: User can select the MD2 plan
@@ -47,6 +72,7 @@ Feature: Multiple Domain Hosting Landing Page
     And the "MD4" MDH plan is in the unselected state
     And the "MD5" MDH plan is in the unselected state
     And the MDH CTA button reflects the "MD2" plan
+    And the "MD2" MDH CTA button links to "#"
 
   @multiple-domain-hosting @sanity @pricing @plan-selection
   Scenario: User can select the MD4 plan
@@ -57,6 +83,7 @@ Feature: Multiple Domain Hosting Landing Page
     And the "MD3" MDH plan is in the unselected state
     And the "MD5" MDH plan is in the unselected state
     And the MDH CTA button reflects the "MD4" plan
+    And the "MD4" MDH CTA button links to "#"
 
   @multiple-domain-hosting @sanity @pricing @plan-selection
   Scenario: User can select the MD5 plan
@@ -67,6 +94,7 @@ Feature: Multiple Domain Hosting Landing Page
     And the "MD3" MDH plan is in the unselected state
     And the "MD4" MDH plan is in the unselected state
     And the MDH CTA button reflects the "MD5" plan
+    And the "MD5" MDH CTA button links to "#"
 
   @multiple-domain-hosting @sanity @pricing @plan-selection
   Scenario: User can re-select the MD3 plan after picking another
@@ -78,6 +106,7 @@ Feature: Multiple Domain Hosting Landing Page
     And the "MD4" MDH plan is in the unselected state
     And the "MD5" MDH plan is in the unselected state
     And the MDH CTA button reflects the "MD3" plan
+    And the "MD3" MDH CTA button links to "#"
 
   @multiple-domain-hosting @sanity @pricing @md1
   Scenario: MD1 plan displays correct copies, pricing, and specs
@@ -101,7 +130,16 @@ Feature: Multiple Domain Hosting Landing Page
     And the "MD2" MDH plan includes "60 GB disk space"
     And the "MD2" MDH plan includes "200 GB bandwidth"
     And the "MD2" MDH plan includes "400 email accounts"
-    And the "MD2" MDH plan excludes "Free SSL"
+
+  # KNOWN BUG (observed 2026-06-30, tracked in TALA3-71): live mdot.ph MD2
+  # renders Free SSL as included, contradicting PR #6's spec. Isolated into
+  # its own scenario without @sanity so the failure doesn't drag down smoke
+  # runs. When the UI is corrected, this scenario starts passing — at that
+  # point merge the step back into the MD2 scenario above and delete this one.
+  # https://dotph.atlassian.net/browse/TALA3-71
+  @multiple-domain-hosting @pricing @md2 @known-bug
+  Scenario: MD2 excludes Free SSL (currently failing per TALA3-71)
+    Then the "MD2" MDH plan excludes "Free SSL"
 
   @multiple-domain-hosting @sanity @pricing @md3
   Scenario: MD3 plan displays correct copies, pricing, and specs
@@ -138,6 +176,14 @@ Feature: Multiple Domain Hosting Landing Page
     And the "MD5" MDH plan includes "600 GB bandwidth"
     And the "MD5" MDH plan includes "800 email accounts"
     And the "MD5" MDH plan includes "Free SSL"
+
+  @multiple-domain-hosting @sanity @pricing @apply-domain
+  Scenario: Apply-to domain field accepts input
+    Then the Apply to label displays "Apply to:"
+    And the domain input field is visible
+    And the domain input placeholder displays "Find your domain name here"
+    When the user fills the domain input with "example.com"
+    Then the domain input value is "example.com"
 
   @multiple-domain-hosting @smoke @pricing
   Scenario: Tax disclaimer displays correct copy

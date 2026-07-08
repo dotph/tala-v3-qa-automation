@@ -12,7 +12,8 @@ Feature: cPanel Hosting Landing Page
     And the See Pricing button displays "See Pricing"
     And the See Pricing button links to "#pricing"
     When the user clicks the See Pricing button
-    Then the pricing section is visible in the viewport
+    Then the URL hash is "#pricing"
+    And the pricing section is visible in the viewport
 
   # ==================== HOSTING PLANS ==================== #
   @cpanel-hosting @smoke @pricing

@@ -34,9 +34,13 @@ public class CpanelHostingPage {
 
     public void assertHeroSubtitleText(String expectedSubtitle) {
         log.info("Asserting hero subtitle contains: \"{}\"", expectedSubtitle.substring(0, Math.min(60, expectedSubtitle.length())) + "...");
-        Locator h1 = page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setLevel(1));
-        Locator subtitle = h1.locator(".. >> p").first();
-        PlaywrightAssertions.assertThat(subtitle).containsText(expectedSubtitle);
+        // Under Playwright's test browser this locator resolves to 2 identical
+        // subheadline <p>s (SSR + hydration duplicate — the pattern is stable,
+        // both copies always match). .first() gives us one element to assert on
+        // without strict-mode noise; hasText requires an exact whitespace-
+        // normalized match so trailing/leading characters can't slip through.
+        Locator subtitle = page.locator("p[class*='subheadline']").first();
+        PlaywrightAssertions.assertThat(subtitle).hasText(expectedSubtitle);
         log.info("PASSED: hero subtitle matches expected copy");
     }
 
@@ -62,7 +66,7 @@ public class CpanelHostingPage {
 
     public void assertPricingSectionInViewport() {
         log.info("Asserting pricing section is visible in viewport");
-        Locator h2 = page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setLevel(2));
+        Locator h2 = pricingSection().getByRole(AriaRole.HEADING, new Locator.GetByRoleOptions().setLevel(2));
         PlaywrightAssertions.assertThat(h2).isInViewport();
         log.info("PASSED: pricing section is visible in viewport");
     }
@@ -71,7 +75,7 @@ public class CpanelHostingPage {
 
     public void assertPlansSectionTitleText(String expectedTitle) {
         log.info("Asserting plans section title contains: \"{}\"", expectedTitle);
-        Locator h2 = page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setLevel(2));
+        Locator h2 = pricingSection().getByRole(AriaRole.HEADING, new Locator.GetByRoleOptions().setLevel(2));
         PlaywrightAssertions.assertThat(h2).containsText(expectedTitle);
         log.info("PASSED: plans section title contains \"{}\"", expectedTitle);
     }
@@ -84,9 +88,18 @@ public class CpanelHostingPage {
         log.info("PASSED: plan title displays \"{}\"", expectedTitle);
     }
 
+    private Locator pricingSection() {
+        return page.locator("#pricing");
+    }
+
     private Locator getPlanCard(String planName) {
+        // Climb to the nearest ancestor whose class list carries "__card" as a
+        // whole token. Substring-matching "__card" alone would collide with
+        // future wrapper classes like "__cardHeader"; the concat-with-spaces
+        // trick emulates a token match in XPath 1.0.
         return page.getByRole(AriaRole.HEADING,
-                new Page.GetByRoleOptions().setLevel(3).setName(planName)).locator("..");
+                new Page.GetByRoleOptions().setLevel(3).setName(planName))
+                .locator("xpath=ancestor::div[contains(concat(' ', @class, ' '), '__card ')][1]");
     }
 
     public void assertPlanPricingLabel(String planName, String expectedLabel) {
