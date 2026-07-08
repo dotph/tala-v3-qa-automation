@@ -118,11 +118,11 @@ Feature: Single Domain Hosting Landing Page
 
   @single-domain-hosting @sanity @pricing @apply-domain
   Scenario: Apply-to domain field accepts input
-    Then the SDH Apply to label displays "Apply to:"
-    And the SDH domain input field is visible
-    And the SDH domain input placeholder displays "Find your domain name here"
-    When the user fills the SDH domain input with "example.com"
-    Then the SDH domain input value is "example.com"
+    Then the Apply to label displays "Apply to:"
+    And the domain input field is visible
+    And the domain input placeholder displays "Find your domain name here"
+    When the user fills the domain input with "example.com"
+    Then the domain input value is "example.com"
 
   @single-domain-hosting @smoke @pricing
   Scenario: Tax disclaimer displays correct copy

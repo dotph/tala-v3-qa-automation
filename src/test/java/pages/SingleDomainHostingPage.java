@@ -35,10 +35,6 @@ public class SingleDomainHostingPage {
 
     public void assertHeroSubtitleText(String expectedSubtitle) {
         log.info("Asserting hero subtitle contains: \"{}\"", expectedSubtitle.substring(0, Math.min(60, expectedSubtitle.length())) + "...");
-        // Semantic class match: HeroBlock's subtitle <p> carries the "subheadline"
-        // class suffix. No .first() — if a duplicate ever appears (e.g. an
-        // accidental mobile/desktop split), strict-mode will fail loudly instead
-        // of picking a random match.
         // Under Playwright's test browser this locator resolves to 2 identical
         // subheadline <p>s (SSR + hydration duplicate — the pattern is stable,
         // both copies always match). .first() gives us one element to assert on
@@ -107,12 +103,13 @@ public class SingleDomainHostingPage {
     }
 
     private Locator getPlanCard(String planName) {
-        // Climb to the nearest ancestor with a "__card" class instead of assuming
-        // the h3 is a direct child of the card — survives any wrapper being
-        // inserted between the h3 and the card container.
+        // Climb to the nearest ancestor whose class list carries "__card" as a
+        // whole token. Substring-matching "__card" alone would collide with
+        // future wrapper classes like "__cardHeader"; the concat-with-spaces
+        // trick emulates a token match in XPath 1.0.
         return page.getByRole(AriaRole.HEADING,
                 new Page.GetByRoleOptions().setLevel(3).setName(planName))
-                .locator("xpath=ancestor::div[contains(@class, '__card')][1]");
+                .locator("xpath=ancestor::div[contains(concat(' ', @class, ' '), '__card ')][1]");
     }
 
     public void assertPlanPrice(String planName, String expectedPrice) {
@@ -184,46 +181,6 @@ public class SingleDomainHostingPage {
         log.info("PASSED: tax note displays \"{}\"", expectedText);
     }
 
-    // ==================== APPLY TO DOMAIN FIELD ==================== //
-
-    private Locator domainField() {
-        return pricingSection().getByRole(AriaRole.SEARCHBOX);
-    }
-
-    private Locator applyToLabel() {
-        return pricingSection().locator("p[class*='applyLabel']");
-    }
-
-    public void assertApplyToLabelDisplays(String expectedLabel) {
-        log.info("Asserting Apply to label displays: \"{}\"", expectedLabel);
-        PlaywrightAssertions.assertThat(applyToLabel()).containsText(expectedLabel);
-        log.info("PASSED: Apply to label displays \"{}\"", expectedLabel);
-    }
-
-    public void assertDomainFieldVisible() {
-        log.info("Asserting domain input field is visible");
-        PlaywrightAssertions.assertThat(domainField()).isVisible();
-        log.info("PASSED: domain input field is visible");
-    }
-
-    public void assertDomainFieldPlaceholder(String expectedPlaceholder) {
-        log.info("Asserting domain input placeholder: \"{}\"", expectedPlaceholder);
-        PlaywrightAssertions.assertThat(domainField()).hasAttribute("placeholder", expectedPlaceholder);
-        log.info("PASSED: domain input placeholder \"{}\"", expectedPlaceholder);
-    }
-
-    public void fillDomainField(String value) {
-        log.info("Filling domain input with: \"{}\"", value);
-        domainField().fill(value);
-        log.info("Filled domain input with \"{}\"", value);
-    }
-
-    public void assertDomainFieldValue(String expectedValue) {
-        log.info("Asserting domain input value: \"{}\"", expectedValue);
-        PlaywrightAssertions.assertThat(domainField()).hasValue(expectedValue);
-        log.info("PASSED: domain input value \"{}\"", expectedValue);
-    }
-
     // ==================== PLAN INCLUSIONS ==================== //
 
     public void assertPlanInclusionsHeading(String planName, String expectedHeading) {
@@ -241,13 +198,17 @@ public class SingleDomainHostingPage {
     }
 
     public void assertPlanIncludesFeature(String planName, String feature) {
-        log.info("Asserting [{}] plan includes feature: \"{}\"", planName, feature);
+        log.info("Asserting [{}] plan includes feature: \"{}\" (expecting ✓ icon)", planName, feature);
         Locator item = getPlanFeatureItem(planName, feature, PricingBlockClasses.INCLUDED_SUFFIX);
         PlaywrightAssertions.assertThat(item).isVisible();
         // Exact-match guard: hasText normalizes whitespace and asserts equality,
         // preventing substring collisions like "40 GB" also matching "140 GB disk space".
         PlaywrightAssertions.assertThat(item).hasText(feature);
-        log.info("PASSED: [{}] plan includes \"{}\"", planName, feature);
+        // Complementary visual signal (symmetric with assertPlanExcludesFeature): the
+        // included row must carry the ✓ checkIcon svg. Without this, a broken/wrong
+        // icon on an "included" row would pass on class + text alone.
+        PlaywrightAssertions.assertThat(item.locator("svg[class*='" + PricingBlockClasses.CHECK_ICON + "']")).isVisible();
+        log.info("PASSED: [{}] plan includes \"{}\" (✓ icon present)", planName, feature);
     }
 
     public void assertPlanExcludesFeature(String planName, String feature) {
@@ -259,6 +220,9 @@ public class SingleDomainHostingPage {
         // Complementary visual signal: excluded rows render at opacity 0.5 so
         // they read as "greyed out". If the styling ever drops to opacity 1,
         // the row looks included even though the class/icon still say excluded.
+        // Note: hasCSS reads getComputedStyle on the <li> itself. If the design
+        // ever moves the dim styling to a wrapper (leaving the <li> at opacity 1),
+        // this fails on an otherwise-correct page — update the target element then.
         PlaywrightAssertions.assertThat(item).hasCSS("opacity", "0.5");
         log.info("PASSED: [{}] plan excludes \"{}\" (X icon present, row dimmed)", planName, feature);
     }

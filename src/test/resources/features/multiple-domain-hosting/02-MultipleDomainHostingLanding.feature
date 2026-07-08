@@ -120,13 +120,7 @@ Feature: Multiple Domain Hosting Landing Page
     And the "MD1" MDH plan includes "200 email accounts"
     And the "MD1" MDH plan excludes "Free SSL"
 
-  # KNOWN BUG (observed 2026-06-30): live mdot.ph MD2 card renders Free SSL as
-  # included (checkIcon) while the intended state per PR #6 is excluded. The
-  # `excludes "Free SSL"` step below is expected to fail until the UI catches
-  # up. Remove the @known-bug tag when the assertion starts passing so the
-  # fail→pass flip isn't silent. Tracked in TALA3-71
-  # (https://dotph.atlassian.net/browse/TALA3-71), related to epic TALA3-70.
-  @multiple-domain-hosting @sanity @pricing @md2 @known-bug
+  @multiple-domain-hosting @sanity @pricing @md2
   Scenario: MD2 plan displays correct copies, pricing, and specs
     Then the MDH plan title displays "MD2"
     And the "MD2" MDH plan displays the monthly price
@@ -136,7 +130,16 @@ Feature: Multiple Domain Hosting Landing Page
     And the "MD2" MDH plan includes "60 GB disk space"
     And the "MD2" MDH plan includes "200 GB bandwidth"
     And the "MD2" MDH plan includes "400 email accounts"
-    And the "MD2" MDH plan excludes "Free SSL"
+
+  # KNOWN BUG (observed 2026-06-30, tracked in TALA3-71): live mdot.ph MD2
+  # renders Free SSL as included, contradicting PR #6's spec. Isolated into
+  # its own scenario without @sanity so the failure doesn't drag down smoke
+  # runs. When the UI is corrected, this scenario starts passing — at that
+  # point merge the step back into the MD2 scenario above and delete this one.
+  # https://dotph.atlassian.net/browse/TALA3-71
+  @multiple-domain-hosting @pricing @md2 @known-bug
+  Scenario: MD2 excludes Free SSL (currently failing per TALA3-71)
+    Then the "MD2" MDH plan excludes "Free SSL"
 
   @multiple-domain-hosting @sanity @pricing @md3
   Scenario: MD3 plan displays correct copies, pricing, and specs
@@ -176,11 +179,11 @@ Feature: Multiple Domain Hosting Landing Page
 
   @multiple-domain-hosting @sanity @pricing @apply-domain
   Scenario: Apply-to domain field accepts input
-    Then the MDH Apply to label displays "Apply to:"
-    And the MDH domain input field is visible
-    And the MDH domain input placeholder displays "Find your domain name here"
-    When the user fills the MDH domain input with "example.com"
-    Then the MDH domain input value is "example.com"
+    Then the Apply to label displays "Apply to:"
+    And the domain input field is visible
+    And the domain input placeholder displays "Find your domain name here"
+    When the user fills the domain input with "example.com"
+    Then the domain input value is "example.com"
 
   @multiple-domain-hosting @smoke @pricing
   Scenario: Tax disclaimer displays correct copy

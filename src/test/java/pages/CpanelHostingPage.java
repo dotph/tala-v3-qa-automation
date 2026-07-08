@@ -34,10 +34,6 @@ public class CpanelHostingPage {
 
     public void assertHeroSubtitleText(String expectedSubtitle) {
         log.info("Asserting hero subtitle contains: \"{}\"", expectedSubtitle.substring(0, Math.min(60, expectedSubtitle.length())) + "...");
-        // Semantic class match: HeroBlock's subtitle <p> carries the "subheadline"
-        // class suffix. No .first() — if a duplicate ever appears (e.g. an
-        // accidental mobile/desktop split), strict-mode will fail loudly instead
-        // of picking a random match.
         // Under Playwright's test browser this locator resolves to 2 identical
         // subheadline <p>s (SSR + hydration duplicate — the pattern is stable,
         // both copies always match). .first() gives us one element to assert on
@@ -97,8 +93,13 @@ public class CpanelHostingPage {
     }
 
     private Locator getPlanCard(String planName) {
+        // Climb to the nearest ancestor whose class list carries "__card" as a
+        // whole token. Substring-matching "__card" alone would collide with
+        // future wrapper classes like "__cardHeader"; the concat-with-spaces
+        // trick emulates a token match in XPath 1.0.
         return page.getByRole(AriaRole.HEADING,
-                new Page.GetByRoleOptions().setLevel(3).setName(planName)).locator("..");
+                new Page.GetByRoleOptions().setLevel(3).setName(planName))
+                .locator("xpath=ancestor::div[contains(concat(' ', @class, ' '), '__card ')][1]");
     }
 
     public void assertPlanPricingLabel(String planName, String expectedLabel) {
