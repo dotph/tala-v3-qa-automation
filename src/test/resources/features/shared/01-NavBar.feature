@@ -84,3 +84,4 @@ Feature: Navigation Bar (shared across landing pages)
       | the cPanel Hosting page          |
       | the Single Domain Hosting page   |
       | the Multiple Domain Hosting page |
+      | the Virtual Private Server page  |
