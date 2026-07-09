@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Strip a leading Jira ticket key from the commit SUBJECT line.
+# Per CONTRIBUTING.md the key belongs in the branch and PR title — not
+# the commit message. Body lines are left untouched (users may legitimately
+# reference other keys, e.g. "Refs QATEAM-999").
+
+COMMIT_MSG_FILE="$1"
+[ -f "$COMMIT_MSG_FILE" ] || exit 0
+
+FIRST_LINE=$(head -n 1 "$COMMIT_MSG_FILE")
+
+# Skip generated commits — git or higher-level tooling wrote these.
+case "$FIRST_LINE" in
+  "Merge "*|"Revert "*|fixup!*|squash!*|amend!*) exit 0 ;;
+esac
+
+if [[ "$FIRST_LINE" =~ ^([A-Z]+-[0-9]+)[[:space:]]+(.+)$ ]]; then
+  KEY="${BASH_REMATCH[1]}"
+  REST="${BASH_REMATCH[2]}"
+
+  TMP=$(mktemp)
+  printf '%s\n' "$REST" > "$TMP"
+  tail -n +2 "$COMMIT_MSG_FILE" >> "$TMP"
+  mv "$TMP" "$COMMIT_MSG_FILE"
+
+  echo "[jira] Stripped leading '$KEY' from commit subject (belongs in PR title, not commit — see CONTRIBUTING.md)."
+fi
+
+exit 0

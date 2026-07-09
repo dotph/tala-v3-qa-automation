@@ -218,6 +218,25 @@ if [ "$HTTP_CODE" = "201" ]; then
   TICKET_KEY=$(echo "$BODY" | jq -r '.key')
   TICKET_URL="${JIRA_BASE_URL}/browse/${TICKET_KEY}"
 
+  # ── Auto-rename branch to include ticket key ─────────────────
+  # Convention (CONTRIBUTING.md): <type>/<TICKET-ID>-<slug>
+  # Splice the key in when the branch has a "<type>/<slug>" shape but no
+  # key yet. Skip when there's no "/" (can't derive type) or the slug
+  # already begins with any Jira-key pattern.
+  if [[ "$BRANCH_NAME" == */* ]]; then
+    TYPE_PREFIX="${BRANCH_NAME%%/*}"
+    SLUG_PART="${BRANCH_NAME#*/}"
+    if ! [[ "$SLUG_PART" =~ ^[A-Z]+-[0-9]+- ]]; then
+      NEW_NAME="${TYPE_PREFIX}/${TICKET_KEY}-${SLUG_PART}"
+      if git branch -m "$NEW_NAME" 2>/dev/null; then
+        echo "[jira] Renamed branch → $NEW_NAME  (convention: <type>/<KEY>-<slug>)"
+        BRANCH_NAME="$NEW_NAME"
+      else
+        echo "[jira] WARNING: Could not rename to $NEW_NAME (rename skipped; ticket created OK)."
+      fi
+    fi
+  fi
+
   # Store ticket key in local branch config (idempotency marker)
   git config --local "branch.${BRANCH_NAME}.jiraTicket" "$TICKET_KEY"
 
