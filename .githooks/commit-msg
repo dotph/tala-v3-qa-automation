@@ -14,7 +14,7 @@ case "$FIRST_LINE" in
   "Merge "*|"Revert "*|fixup!*|squash!*|amend!*) exit 0 ;;
 esac
 
-if [[ "$FIRST_LINE" =~ ^([A-Z]+-[0-9]+)[[:space:]]+(.+)$ ]]; then
+if [[ "$FIRST_LINE" =~ ^([A-Z]+-[0-9]+):?[[:space:]]+(.+)$ ]]; then
   KEY="${BASH_REMATCH[1]}"
   REST="${BASH_REMATCH[2]}"
 

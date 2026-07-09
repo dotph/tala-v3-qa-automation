@@ -226,7 +226,7 @@ if [ "$HTTP_CODE" = "201" ]; then
   if [[ "$BRANCH_NAME" == */* ]]; then
     TYPE_PREFIX="${BRANCH_NAME%%/*}"
     SLUG_PART="${BRANCH_NAME#*/}"
-    if ! [[ "$SLUG_PART" =~ ^[A-Z]+-[0-9]+- ]]; then
+    if ! [[ "$SLUG_PART" =~ ^[A-Z]+-[0-9]+(-|$) ]]; then
       NEW_NAME="${TYPE_PREFIX}/${TICKET_KEY}-${SLUG_PART}"
       if git branch -m "$NEW_NAME" 2>/dev/null; then
         echo "[jira] Renamed branch → $NEW_NAME  (convention: <type>/<KEY>-<slug>)"
