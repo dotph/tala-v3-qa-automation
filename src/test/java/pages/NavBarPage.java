@@ -77,7 +77,8 @@ public class NavBarPage {
         Locator navItem = page.getByRole(AriaRole.NAVIGATION, new Page.GetByRoleOptions().setName("Main navigation"))
                 .getByRole(AriaRole.BUTTON, new Locator.GetByRoleOptions().setName(itemName));
         navItem.click();
-        log.info("Clicked nav item: \"{}\"", itemName);
+        PlaywrightAssertions.assertThat(openDropdownPanel()).isVisible();
+        log.info("Clicked nav item: \"{}\" (dropdown open)", itemName);
     }
 
     public void closeDropdown() {
