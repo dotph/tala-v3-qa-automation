@@ -16,17 +16,16 @@ BRANCH_FLAG="$3" # 1 = branch checkout, 0 = file checkout
 # ── Get current branch name ─────────────────────────────────
 BRANCH_NAME=$(git symbolic-ref --short HEAD 2>/dev/null) || exit 0
 
-# ── Guard 2: skip protected branches ────────────────────────
-case "$BRANCH_NAME" in
-  master|main|develop) exit 0 ;;
-esac
-
 # Source shared helpers (jira_transition, jira_curl). Cheap — just function defs.
 source "${HOOKS_DIR}/jira-transition-helper"
 
 # ── Auto-Done: close the previous branch's ticket if its PR is merged ───
-# Fires for every branch checkout (incl. `git checkout -b`), before any
-# new-ticket creation below. Skipped silently when there's nothing to close.
+# Runs BEFORE the protected-branch guard below so `git checkout main` after
+# a PR merge actually closes the ticket — the operation only reads/writes
+# state on the PREVIOUS branch, so the branch we're arriving at doesn't
+# matter. Fires for every branch checkout (incl. `git checkout -b`), before
+# any new-ticket creation below. Skipped silently when there's nothing to
+# close.
 PREV_BRANCH=$(git rev-parse --abbrev-ref @{-1} 2>/dev/null || echo "")
 case "$PREV_BRANCH" in
   master|main|develop|HEAD|"")
@@ -69,6 +68,13 @@ case "$PREV_BRANCH" in
       fi
     fi
     ;;
+esac
+
+# ── Guard 2: skip ticket creation on protected branches ─────
+# Auto-Done above already ran; this guard now gates only the ticket-
+# creation flow below (nothing to create when we're just switching to main).
+case "$BRANCH_NAME" in
+  master|main|develop) exit 0 ;;
 esac
 
 # ── Guard 3: only fire ticket creation for freshly-created branches ─
