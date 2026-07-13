@@ -81,6 +81,11 @@ public class WoocommerceTest {
         woocommercePage.assertPlansSectionTitleText(expectedTitle);
     }
 
+    @Then("the Woo plans section has {int} plan cards")
+    public void assertPlanCardCount(int expected) {
+        woocommercePage.assertPlanCardCount(expected);
+    }
+
     @Then("the Woo plan title displays {string}")
     public void assertPlanTitleDisplays(String expectedTitle) {
         woocommercePage.assertPlanTitleDisplays(expectedTitle);
@@ -164,11 +169,32 @@ public class WoocommerceTest {
         woocommercePage.assertPlanIncludesFeature(planName, feature);
     }
 
+    @Then("the {string} Woo plan displays the yearly renewal price")
+    public void assertPlanYearlyRenewalPrice(String planName) {
+        // The "$X.YY/year on renewal" line is originalMonthlyPrice × 12 —
+        // derived from the enum here so the yearly figure has a single
+        // source of truth alongside the monthly. Assertion routes through
+        // assertPlanIncludesFeature so the ✓ icon guard fires too.
+        WoocommercePlan plan = WoocommercePlan.fromLabel(planName);
+        String expected = "$" + plan.getYearlyRenewalPrice().toPlainString() + "/year on renewal";
+        woocommercePage.assertPlanIncludesFeature(planName, expected);
+    }
+
     // ==================== FAQ SECTION ==================== //
+
+    @Then("the Woo FAQ section has {int} questions")
+    public void assertFaqQuestionCount(int expected) {
+        woocommercePage.assertFaqQuestionCount(expected);
+    }
 
     @Then("the Woo FAQ question {string} is visible")
     public void assertFaqQuestionVisible(String question) {
         woocommercePage.assertFaqQuestionVisible(question);
+    }
+
+    @Then("the Woo FAQ question {string} is collapsed by default")
+    public void assertFaqQuestionCollapsed(String question) {
+        woocommercePage.assertFaqQuestionCollapsed(question);
     }
 
     @When("the user expands the Woo FAQ question {string}")

@@ -22,6 +22,16 @@ public enum WoocommercePlan {
 
     public BigDecimal getPromoMonthlyPrice() { return promoMonthlyPrice; }
 
+    /**
+     * The "$X/year on renewal" copy on each plan card is the pre-promo monthly
+     * price × 12 (verified live: Start-up $5.00 × 12 = $60.00, Pro $8.00 × 12
+     * = $96.00). Deriving it here keeps the source of truth on the enum
+     * instead of scattering the yearly literal across the feature file.
+     */
+    public BigDecimal getYearlyRenewalPrice() {
+        return originalMonthlyPrice.multiply(new BigDecimal("12"));
+    }
+
     public static WoocommercePlan fromLabel(String label) {
         for (WoocommercePlan p : values()) {
             if (p.label.equals(label)) return p;

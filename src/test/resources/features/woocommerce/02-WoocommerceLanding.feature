@@ -39,6 +39,10 @@ Feature: WooCommerce Landing Page
   Scenario: Plans section title displays correct copy
     Then the Woo plans section title displays "Choose Your WooCommerce Plan"
 
+  @woocommerce @sanity @pricing @plan-count
+  Scenario: Plans section renders exactly two plan cards
+    Then the Woo plans section has 2 plan cards
+
   @woocommerce @sanity @pricing @plan-order
   Scenario: Plan cards appear in the correct order
     Then the Woo plan card at position 1 is "Start-up Plan"
@@ -83,7 +87,7 @@ Feature: WooCommerce Landing Page
     And the "Start-up Plan" Woo plan includes "1 online store"
     And the "Start-up Plan" Woo plan includes "1 free business email (10 GB)"
     And the "Start-up Plan" Woo plan includes "Free SSL certificate"
-    And the "Start-up Plan" Woo plan includes "$60.00/year on renewal"
+    And the "Start-up Plan" Woo plan displays the yearly renewal price
 
   @woocommerce @sanity @pricing @pro
   Scenario: Pro Plan displays correct copies, pricing, and specs
@@ -95,13 +99,15 @@ Feature: WooCommerce Landing Page
     And the "Pro Plan" Woo plan includes "1 online store"
     And the "Pro Plan" Woo plan includes "1 free business email (10 GB)"
     And the "Pro Plan" Woo plan includes "Free SSL certificate"
-    And the "Pro Plan" Woo plan includes "$96.00/year on renewal"
+    And the "Pro Plan" Woo plan displays the yearly renewal price
 
   @woocommerce @sanity @pricing @apply-domain
-  Scenario: Apply-to domain field displays correct copies
+  Scenario: Apply-to domain field accepts input
     Then the Apply to label displays "Apply to:"
     And the domain input field is visible
     And the domain input placeholder displays "Find your domain name here"
+    When the user fills the domain input with "example.com"
+    Then the domain input value is "example.com"
 
   @woocommerce @smoke @pricing
   Scenario: Tax disclaimer displays correct copy
@@ -110,45 +116,28 @@ Feature: WooCommerce Landing Page
   # ==================== FAQ SECTION ==================== #
   # NOTE: The FAQ accordion keeps every panel present in the DOM even when
   # collapsed (CSS grid 0fr→1fr animation), so panel text is always readable
-  # via textContent. To match user-observable behaviour we still click each
-  # trigger before asserting the copy — assertFaqAnswerContains gates on the
-  # panel's isVisible check, which waits for the accordion to open.
+  # via textContent. User-observable state tracks bounding-box height, so:
+  #   - collapsed: assertFaqQuestionCollapsed → aria-expanded=false + not visible
+  #   - expanded : expandFaqQuestion clicks + waits for aria-expanded=true
+  #   - answer   : assertFaqAnswerContains gates on the panel's isVisible check
+  # The count scenario is the safety net for a 7th question quietly appearing.
+
+  @woocommerce @sanity @faq @faq-count
+  Scenario: FAQ section renders exactly six questions
+    Then the Woo FAQ section has 6 questions
 
   @woocommerce @sanity @faq
-  Scenario: FAQ section renders all questions
-    Then the Woo FAQ question "What is WooCommerce?" is visible
-    And the Woo FAQ question "Do I need hosting for WooCommerce?" is visible
-    And the Woo FAQ question "Does WooCommerce charge sales fees?" is visible
-    And the Woo FAQ question "How secure is my WooCommerce store?" is visible
-    And the Woo FAQ question "Do I get a business email account?" is visible
-    And the Woo FAQ question "Can I manage my store from my phone?" is visible
+  Scenario Outline: FAQ question "<question>" starts collapsed and expands to the expected answer
+    Then the Woo FAQ question "<question>" is visible
+    And the Woo FAQ question "<question>" is collapsed by default
+    When the user expands the Woo FAQ question "<question>"
+    Then the Woo FAQ answer for "<question>" includes "<fragment>"
 
-  @woocommerce @sanity @faq
-  Scenario: What is WooCommerce? expands to the expected answer
-    When the user expands the Woo FAQ question "What is WooCommerce?"
-    Then the Woo FAQ answer for "What is WooCommerce?" includes "most popular ecommerce plugin for WordPress"
-
-  @woocommerce @sanity @faq
-  Scenario: Do I need hosting for WooCommerce? expands to the expected answer
-    When the user expands the Woo FAQ question "Do I need hosting for WooCommerce?"
-    Then the Woo FAQ answer for "Do I need hosting for WooCommerce?" includes "Our plans come pre-configured for WooCommerce"
-
-  @woocommerce @sanity @faq
-  Scenario: Does WooCommerce charge sales fees? expands to the expected answer
-    When the user expands the Woo FAQ question "Does WooCommerce charge sales fees?"
-    Then the Woo FAQ answer for "Does WooCommerce charge sales fees?" includes "Utilizing WooCommerce by itself is free of charge"
-
-  @woocommerce @sanity @faq
-  Scenario: How secure is my WooCommerce store? expands to the expected answer
-    When the user expands the Woo FAQ question "How secure is my WooCommerce store?"
-    Then the Woo FAQ answer for "How secure is my WooCommerce store?" includes "free SSL certificate, daily backups"
-
-  @woocommerce @sanity @faq
-  Scenario: Do I get a business email account? expands to the expected answer
-    When the user expands the Woo FAQ question "Do I get a business email account?"
-    Then the Woo FAQ answer for "Do I get a business email account?" includes "one free 10 GB business email account"
-
-  @woocommerce @sanity @faq
-  Scenario: Can I manage my store from my phone? expands to the expected answer
-    When the user expands the Woo FAQ question "Can I manage my store from my phone?"
-    Then the Woo FAQ answer for "Can I manage my store from my phone?" includes "WooCommerce mobile app is available on iOS and Android"
+    Examples:
+      | question                              | fragment                                                |
+      | What is WooCommerce?                  | most popular ecommerce plugin for WordPress             |
+      | Do I need hosting for WooCommerce?    | Our plans come pre-configured for WooCommerce           |
+      | Does WooCommerce charge sales fees?   | Utilizing WooCommerce by itself is free of charge       |
+      | How secure is my WooCommerce store?   | free SSL certificate, daily backups                     |
+      | Do I get a business email account?    | one free 10 GB business email account                   |
+      | Can I manage my store from my phone?  | WooCommerce mobile app is available on iOS and Android  |

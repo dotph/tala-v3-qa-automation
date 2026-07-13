@@ -41,14 +41,24 @@ public class WoocommercePage {
         // without strict-mode noise; hasText requires an exact whitespace-
         // normalized match so trailing/leading characters can't slip through.
         Locator subtitle = page.locator("p[class*='subheadline']").first();
+        // isVisible gate mirrors the tax-note assertion below — a DOM-only
+        // subtitle (display:none or 0-height) would otherwise silently pass
+        // the copy check.
+        PlaywrightAssertions.assertThat(subtitle).isVisible();
         PlaywrightAssertions.assertThat(subtitle).hasText(expectedSubtitle);
         log.info("PASSED: hero subtitle matches expected copy");
     }
 
     public void assertSeePricingButtonDisplays(String expectedText) {
         log.info("Asserting See Pricing button displays: \"{}\"", expectedText);
-        Locator seePricing = page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName("See Pricing"));
-        PlaywrightAssertions.assertThat(seePricing).containsText(expectedText);
+        // Accessible-name locator + exact hasText: the locator finds the
+        // button by its rendered text, so a text-drift causes a clear
+        // element-not-found timeout; the explicit isVisible + hasText
+        // pair also catches display-hidden state and whitespace / casing
+        // regressions that containsText would let slide.
+        Locator seePricing = page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName(expectedText));
+        PlaywrightAssertions.assertThat(seePricing).isVisible();
+        PlaywrightAssertions.assertThat(seePricing).hasText(expectedText);
         log.info("PASSED: See Pricing button displays \"{}\"", expectedText);
     }
 
@@ -84,10 +94,15 @@ public class WoocommercePage {
 
     public void assertGrowingIntroContains(String fragment) {
         log.info("Asserting Start growing intro contains: \"{}\"", fragment);
-        // Anchor on the h2's parent so the assertion scopes to the section's
-        // surrounding intro paragraph without matching unrelated copy elsewhere.
-        Locator section = growingSection();
-        PlaywrightAssertions.assertThat(section).containsText(fragment);
+        // Anchor to the intro <p> immediately following the section h2 via
+        // following-sibling::p[1] (same pattern used for the sub-feature
+        // description assertions below). Scoping to the h2's parent
+        // container would let a fragment from any child element — including
+        // the three sub-feature paragraphs — silently satisfy the assertion.
+        Locator intro = page.getByRole(AriaRole.HEADING,
+                        new Page.GetByRoleOptions().setLevel(2).setName("Start growing your business with WooCommerce."))
+                .locator("xpath=following-sibling::p[1]");
+        PlaywrightAssertions.assertThat(intro).containsText(fragment);
         log.info("PASSED: Start growing intro contains \"{}\"", fragment);
     }
 
@@ -132,11 +147,28 @@ public class WoocommercePage {
         log.info("PASSED: plans section title contains \"{}\"", expectedTitle);
     }
 
+    public void assertPlanCardCount(int expected) {
+        log.info("Asserting plans section has {} plan card(s)", expected);
+        // Guard against a silent extra card / dropped card: the per-plan
+        // scenarios pin the two known cards but wouldn't catch a hypothetical
+        // 3rd tier (or a card disappearing entirely). Scoped to pricingSection
+        // so navbar / footer h3s can't inflate the count.
+        Locator cards = pricingSection().getByRole(AriaRole.HEADING,
+                new Locator.GetByRoleOptions().setLevel(3));
+        PlaywrightAssertions.assertThat(cards).hasCount(expected);
+        log.info("PASSED: plans section has {} plan card(s)", expected);
+    }
+
     public void assertPlanTitleDisplays(String expectedTitle) {
         log.info("Asserting plan title displays: \"{}\"", expectedTitle);
+        // Same tightening as assertSeePricingButtonDisplays: locate by
+        // accessible name (any text drift surfaces as element-not-found),
+        // then gate on isVisible and pin the exact rendered text with
+        // hasText so hidden or whitespace-drifted h3s don't slip past.
         Locator planTitle = page.getByRole(AriaRole.HEADING,
                 new Page.GetByRoleOptions().setLevel(3).setName(expectedTitle));
-        PlaywrightAssertions.assertThat(planTitle).containsText(expectedTitle);
+        PlaywrightAssertions.assertThat(planTitle).isVisible();
+        PlaywrightAssertions.assertThat(planTitle).hasText(expectedTitle);
         log.info("PASSED: plan title displays \"{}\"", expectedTitle);
     }
 
@@ -322,10 +354,39 @@ public class WoocommercePage {
         return getFaqTrigger(question).locator("xpath=following-sibling::div[contains(@class, 'panel')][1]");
     }
 
+    private Locator faqTriggers() {
+        // Scoped to the FAQBlock container so a future accordion elsewhere
+        // on the page (e.g. nav / footer) can't inflate the count.
+        return page.locator("[class*='FAQBlock']").locator("button[class*='trigger']");
+    }
+
+    public void assertFaqQuestionCount(int expected) {
+        log.info("Asserting FAQ section has {} question(s)", expected);
+        // Complementary to the Scenario Outline that pins each known
+        // question by copy: without this, a 7th question added to the
+        // component (or a dropped one) would pass unnoticed.
+        PlaywrightAssertions.assertThat(faqTriggers()).hasCount(expected);
+        log.info("PASSED: FAQ section has {} question(s)", expected);
+    }
+
     public void assertFaqQuestionVisible(String question) {
         log.info("Asserting FAQ question is visible: \"{}\"", question);
         PlaywrightAssertions.assertThat(getFaqTrigger(question)).isVisible();
         log.info("PASSED: FAQ question visible \"{}\"", question);
+    }
+
+    public void assertFaqQuestionCollapsed(String question) {
+        log.info("Asserting FAQ question is collapsed by default: \"{}\"", question);
+        // Two signals for the same state: (a) aria-expanded=false on the
+        // trigger — the accessibility contract, and (b) the panel is not
+        // user-visible (CSS grid 0fr collapses bounding-box height to 0,
+        // isVisible returns false). Asserting both prevents an "always-open"
+        // accordion regression from slipping past — expand + answer checks
+        // alone would still pass on a stuck-open panel.
+        Locator trigger = getFaqTrigger(question);
+        PlaywrightAssertions.assertThat(trigger).hasAttribute("aria-expanded", "false");
+        PlaywrightAssertions.assertThat(getFaqPanel(question)).not().isVisible();
+        log.info("PASSED: FAQ question collapsed by default \"{}\"", question);
     }
 
     public void expandFaqQuestion(String question) {

@@ -8,8 +8,8 @@ import pages.components.DomainField;
 /**
  * Page-agnostic step definitions for the shared "Apply to:" domain field.
  * The current page context (set by the Background's navigate step) determines
- * which landing page's field is under test, so the Gherkin steps here carry
- * no SDH/MDH prefix.
+ * which landing page's field is under test — SDH, MDH, or WooCommerce today —
+ * so the Gherkin steps here carry no page prefix.
  */
 public class DomainFieldStepsTest {
     private final DomainField domainField;
