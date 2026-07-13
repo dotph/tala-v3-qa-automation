@@ -25,4 +25,9 @@
             <class name="runner.VpsRunner"/>
         </classes>
     </test>
+    <test name="WooCommerce Landing Page">
+        <classes>
+            <class name="runner.WoocommerceRunner"/>
+        </classes>
+    </test>
 </suite>

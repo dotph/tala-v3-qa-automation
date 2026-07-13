@@ -65,3 +65,4 @@ Feature: Footer (shared across landing pages)
       | the Single Domain Hosting page   |
       | the Multiple Domain Hosting page |
       | the Virtual Private Server page  |
+      | the WooCommerce page             |
