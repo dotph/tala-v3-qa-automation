@@ -25,7 +25,7 @@ Every branch, commit, and PR is tagged with the Jira ticket key and a type prefi
 | Artefact | Format | Example |
 |---|---|---|
 | Branch | `<type>/<TICKET-ID>-<short-kebab-summary>` | `test/QATEAM-123-single-domain-hosting` |
-| Commit | `<type>(<scope>): <subject>` | `test(sdh): add Single Domain Hosting landing page` |
+| Commit | `<TICKET-ID> <type>(<scope>): <subject>` | `QATEAM-123 test(sdh): add Single Domain Hosting landing page` |
 | PR title | `<TICKET-ID> <type>(<scope>): <subject>` | `QATEAM-123 test(sdh): add Single Domain Hosting landing page` |
 
 **Types** — pick the one that represents the *primary* purpose of the change. If two could apply 50/50, that's usually a sign the PR should be split.
@@ -48,7 +48,7 @@ Note: adding tests for an existing product feature is `test`, **not** `feat`. `f
 
 **Scope** is usually the page key (`sdh`, `cpanel`, `vps`, …) or a cross-cutting label (`ci`, `docs`, `config`).
 
-Existing branches created before this convention was introduced are grandfathered — the rule applies to **new branches** from the convention's adoption onward.
+Existing branches and commits created before this convention was introduced are grandfathered — the rule applies to **new branches and new commits** from the convention's adoption onward.
 
 ## PR description
 
