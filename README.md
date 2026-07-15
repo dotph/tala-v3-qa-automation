@@ -24,7 +24,7 @@ Built with **Playwright Java 1.45**, **TestNG 7**, **Cucumber 7**, and **Allure 
 | Trigger | Effect |
 |---|---|
 | `git checkout -b <name>` | Creates Story under the configured epic, assigns to you, transitions to *Work in progress*. If `<name>` is shaped `<type>/<slug>` without a key, renames it to `<type>/<KEY>-<slug>` after the ticket is created. |
-| `git commit` | If the commit subject starts with a Jira key (e.g. `QATEAM-1007 fix …` or `QATEAM-1007: fix …`), strips the key — per CONTRIBUTING.md it belongs in the PR title only. Body lines and merge/revert/fixup/squash/amend commits are left alone. |
+| `git commit` | Warns (never blocks) if the commit subject does not start with a Jira key. Per CONTRIBUTING.md every commit subject should be `<TICKET-ID> <type>(<scope>): <subject>` — e.g. `QATEAM-1007 chore(hooks): …`. Body lines and merge/revert/fixup/squash/amend commits are left alone. |
 | `git push origin <name>` | Transitions ticket to *Code Review* |
 | `git checkout` away from a branch whose PR is merged (including `git checkout main`) | Transitions that ticket to *Done* (uses `gh` CLI to verify the PR is merged first) |
 | `git jira-plan` (alias) | Interactively stages a summary + Claude-enhanced description for the next `checkout -b` |

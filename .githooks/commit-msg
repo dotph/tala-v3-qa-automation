@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Strip a leading Jira ticket key from the commit SUBJECT line.
-# Per CONTRIBUTING.md the key belongs in the branch and PR title — not
-# the commit message. Body lines are left untouched (users may legitimately
-# reference other keys, e.g. "Refs QATEAM-999").
+# Warn (never block) if the commit SUBJECT line is missing a leading Jira
+# ticket key. Per CONTRIBUTING.md every commit subject should be
+# `<TICKET-ID> <type>(<scope>): <subject>` — e.g. `QATEAM-1007 chore(hooks): …`.
+# Body lines are left untouched and merge/revert/fixup/squash/amend commits
+# are skipped (git or higher-level tooling wrote those).
 
 COMMIT_MSG_FILE="$1"
 [ -f "$COMMIT_MSG_FILE" ] || exit 0
@@ -14,16 +15,14 @@ case "$FIRST_LINE" in
   "Merge "*|"Revert "*|fixup!*|squash!*|amend!*) exit 0 ;;
 esac
 
-if [[ "$FIRST_LINE" =~ ^([A-Z]+-[0-9]+):?[[:space:]]+(.+)$ ]]; then
-  KEY="${BASH_REMATCH[1]}"
-  REST="${BASH_REMATCH[2]}"
-
-  TMP=$(mktemp)
-  printf '%s\n' "$REST" > "$TMP"
-  tail -n +2 "$COMMIT_MSG_FILE" >> "$TMP"
-  mv "$TMP" "$COMMIT_MSG_FILE"
-
-  echo "[jira] Stripped leading '$KEY' from commit subject (belongs in PR title, not commit — see CONTRIBUTING.md)."
+# Accept "QATEAM-1234 <rest>" or "QATEAM-1234: <rest>" — lenient on the
+# separator, strict on the shape (Jira project key + digits at the very
+# start; the project starts with a letter and may carry digits after it,
+# e.g. TALA3-71). Only the presence of the key is checked; the type/scope
+# grammar lives in CONTRIBUTING.md and code review.
+if ! [[ "$FIRST_LINE" =~ ^[A-Z][A-Z0-9]*-[0-9]+:?[[:space:]] ]]; then
+  echo "[jira] WARNING: commit subject does not start with a Jira ticket key."
+  echo "[jira]          Expected: '<TICKET-ID> <type>(<scope>): <subject>' (see CONTRIBUTING.md)."
 fi
 
 exit 0
