@@ -60,7 +60,7 @@ Feature: Registry Lock Landing Page
 
   @registry-lock @sanity @subscribe
   Scenario Outline: Subscribe step <number> displays the correct badge, heading, and description
-    Then the RL Subscribe step at position <number> shows the number "<number>"
+    Then the RL Subscribe step at position <number> displays the number "<number>"
     And the RL Subscribe step at position <number> heading displays "<heading>"
     And the RL Subscribe step at position <number> description includes "<fragment>"
 

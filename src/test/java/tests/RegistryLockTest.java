@@ -102,7 +102,7 @@ public class RegistryLockTest {
         registryLockPage.assertSubscribeStepCount(expected);
     }
 
-    @Then("the RL Subscribe step at position {int} shows the number {string}")
+    @Then("the RL Subscribe step at position {int} displays the number {string}")
     public void assertSubscribeStepNumber(int position, String expectedNumber) {
         registryLockPage.assertSubscribeStepNumber(position, expectedNumber);
     }

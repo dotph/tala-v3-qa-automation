@@ -221,7 +221,12 @@ public class RegistryLockPage {
     }
 
     private Locator subscribeSteps() {
-        return stepsSection().locator("li[class*='__item']");
+        // '__item ' xpath token match mirrors infoBlock() and Woo's getPlanCard,
+        // so all three "match items in a section" locators read as one dialect.
+        // Safe against a hypothetical <li class="...__itemFoo"> variant even
+        // though StepsBlock's DOM currently has no such collision risk.
+        return stepsSection()
+                .locator("xpath=.//li[contains(concat(' ', @class, ' '), '__item ')]");
     }
 
     private Locator subscribeStep(int position) {
