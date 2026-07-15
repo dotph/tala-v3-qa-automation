@@ -18,9 +18,12 @@ esac
 # Accept "QATEAM-1234 <rest>" or "QATEAM-1234: <rest>" — lenient on the
 # separator, strict on the shape (Jira project key + digits at the very
 # start; the project starts with a letter and may carry digits after it,
-# e.g. TALA3-71). Only the presence of the key is checked; the type/scope
-# grammar lives in CONTRIBUTING.md and code review.
-if ! [[ "$FIRST_LINE" =~ ^[A-Z][A-Z0-9]*-[0-9]+:?[[:space:]] ]]; then
+# e.g. TALA3-71). The key must be followed by whitespace OR end-of-line,
+# so a subject that's ONLY the ticket key (no trailing type/scope) still
+# passes — the hook's job is to warn on missing key, not on terse copy.
+# Only the presence of the key is checked; the type/scope grammar lives
+# in CONTRIBUTING.md and code review.
+if ! [[ "$FIRST_LINE" =~ ^[A-Z][A-Z0-9]*-[0-9]+:?([[:space:]]|$) ]]; then
   echo "[jira] WARNING: commit subject does not start with a Jira ticket key."
   echo "[jira]          Expected: '<TICKET-ID> <type>(<scope>): <subject>' (see CONTRIBUTING.md)."
 fi
