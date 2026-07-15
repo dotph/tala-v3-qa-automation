@@ -35,4 +35,9 @@
             <class name="runner.PrivateRegistrationRunner"/>
         </classes>
     </test>
+    <test name="Registry Lock Landing Page">
+        <classes>
+            <class name="runner.RegistryLockRunner"/>
+        </classes>
+    </test>
 </suite>
