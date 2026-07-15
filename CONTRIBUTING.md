@@ -16,7 +16,11 @@ The full version lives in [docs/conventions.md](docs/conventions.md). The short 
 
 ## Adding a new page suite
 
-Step-by-step checklist: [docs/adding-a-new-page-suite.md](docs/adding-a-new-page-suite.md). The most common mistake is forgetting to **register the new runner in `src/test/resources/features/testng.xml`** — without that, `mvn test` (the CI command) silently skips your suite.
+Step-by-step checklist: [docs/adding-a-new-page-suite.md](docs/adding-a-new-page-suite.md). Three steps cause **silent under-coverage** rather than a loud failure when forgotten — check each before opening the PR:
+
+- **Register the new runner in `src/test/resources/features/testng.xml`.** Without this, `mvn test` (the CI command) skips your suite entirely.
+- **Add the new page's Given phrase to the Examples table in `src/test/resources/features/shared/01-NavBar.feature`.** Otherwise the shared NavBar scenario outline doesn't run against your page.
+- **Add the same row to `src/test/resources/features/shared/03-Footer.feature`.** Same reason for the shared Footer coverage.
 
 ## Branch / commit / PR-title format
 
@@ -64,7 +68,7 @@ Use the template in [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TE
 1. `mvn test` (no `-Dtest` override) — both suites must pass via `testng.xml`. This is what CI runs.
 2. `mvn test -Dheadless=true` — catches any headless-only regressions before CI.
 3. Open `mvn allure:serve` and skim the new scenarios.
-4. If you added a runner, double-check it's in `testng.xml`.
+4. If you added a runner, double-check it's in `testng.xml` **and** that its Given phrase appears in both `shared/01-NavBar.feature` and `shared/03-Footer.feature` Examples tables.
 
 ## Review
 

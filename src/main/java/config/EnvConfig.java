@@ -45,4 +45,8 @@ public class EnvConfig {
     public static String getVpsUrl() {
         return getBaseUrl() + "/vps";
     }
+
+    public static String getWoocommerceUrl() {
+        return getBaseUrl() + "/woocommerce";
+    }
 }
