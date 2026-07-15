@@ -87,3 +87,4 @@ Feature: Navigation Bar (shared across landing pages)
       | the Virtual Private Server page  |
       | the WooCommerce page             |
       | the Private Registration page    |
+      | the Registry Lock page           |
