@@ -127,20 +127,23 @@ public class RegistryLockPage {
     // ==================== INFO BLOCKS (SplitFeature) ==================== //
 
     private Locator infoBlock(int position) {
-        // .nth(position - 1): feature file passes 1-indexed positions, Playwright's
-        // nth() is 0-indexed.
-        // The block class list is either "...__item" (block 1) or "...__item
-        // ...__itemReversed" (block 2), so match on either:
-        //   [class$='__item']   → any element whose class ATTRIBUTE ends in __item
-        //   [class*='__item ']  → any element whose class attribute contains
-        //                          "__item " (trailing space = class boundary)
-        // Combined via CSS ",", this pins the two item divs specifically and
-        // rejects any outer wrapper that happens to carry a class like
-        // __itemGroup / __itemsGrid — those would otherwise slip through a
-        // naive [class*='__item'] substring match and shift the .nth() index.
+        // Same shape as Woo's getPlanCard: anchor on the block's h3 (the
+        // semantic content) and walk up to the __item ancestor. .nth() picks
+        // the h3 at the requested position (1-indexed in Gherkin, 0-indexed
+        // in Playwright).
+        // '__item ' (trailing space only, matching Woo's '__card ' idiom):
+        // classes here are per-build-hashed like "SplitFeatureBlock-module__
+        // 8_jDQW__item" — "__item" is a suffix of a longer identifier, so it
+        // never appears as a standalone whitespace-bounded token. Matching
+        // "__item " (trailing space) via the concat trick pins the case where
+        // "...__item" is followed by another class (block 2) or by the
+        // concat's own trailing space (block 1, end of class attribute), and
+        // rejects "...__itemList" because there's no space between "item" and
+        // "List".
         return page.locator("section[class*='SplitFeatureBlock']")
-                .locator("[class$='__item'], [class*='__item ']")
-                .nth(position - 1);
+                .getByRole(AriaRole.HEADING, new Locator.GetByRoleOptions().setLevel(3))
+                .nth(position - 1)
+                .locator("xpath=ancestor::div[contains(concat(' ', @class, ' '), '__item ')][1]");
     }
 
     public void assertInfoBlockHeading(int position, String expectedHeading) {
