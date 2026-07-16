@@ -57,4 +57,8 @@ public class EnvConfig {
     public static String getRegistryLockUrl() {
         return getBaseUrl() + "/registry-lock";
     }
+
+    public static String getSslUrl() {
+        return getBaseUrl() + "/ssl";
+    }
 }
