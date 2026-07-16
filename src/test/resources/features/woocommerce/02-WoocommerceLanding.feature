@@ -141,3 +141,12 @@ Feature: WooCommerce Landing Page
       | How secure is my WooCommerce store?   | free SSL certificate, daily backups                     |
       | Do I get a business email account?    | one free 10 GB business email account                   |
       | Can I manage my store from my phone?  | WooCommerce mobile app is available on iOS and Android  |
+
+  # ==================== COPY HYGIENE ==================== #
+  # Playwright's hasText / containsText / getByText all whitespace-normalize,
+  # so a doubled space or stray &nbsp; on this page would slip past every
+  # other scenario in this file. See tests.CopyHygieneStepsTest.
+
+  @woocommerce @sanity @copy-hygiene
+  Scenario: Page copy has no whitespace regressions
+    Then the page copy has no whitespace regressions

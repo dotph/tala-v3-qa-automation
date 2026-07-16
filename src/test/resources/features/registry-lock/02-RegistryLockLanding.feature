@@ -121,6 +121,18 @@ Feature: Registry Lock Landing Page
     When the user fills the domain input with "example.com"
     Then the domain input value is "example.com"
 
+  # ==================== COPY HYGIENE ==================== #
+  # NOTE: Playwright's hasText / containsText / getByText all whitespace-
+  # normalize before comparing, so a doubled space or stray &nbsp; on the
+  # page would slip past every other scenario in this file. This scan walks
+  # the DOM's text nodes and fails on any interior double-space or non-
+  # breaking-space — meeting the QATEAM-1016 "detect regressions in copy
+  # quality … fail on any deviation" criterion.
+
+  @registry-lock @sanity @copy-hygiene
+  Scenario: Page copy has no whitespace regressions
+    Then the page copy has no whitespace regressions
+
   @registry-lock @smoke @pricing
   Scenario: Tax disclaimer displays correct copy
     Then the RL tax note displays "* Applicable taxes may apply at checkout."

@@ -161,3 +161,12 @@ Feature: VPS Landing Page
     And the VPS inquiry field "Email Address of Contact Person" placeholder is "you@company.com"
     And the VPS inquiry field "Additional Comments" placeholder is "Message"
     And the VPS inquiry Submit button is visible
+
+  # ==================== COPY HYGIENE ==================== #
+  # Playwright's hasText / containsText / getByText all whitespace-normalize,
+  # so a doubled space or stray &nbsp; on this page would slip past every
+  # other scenario in this file. See tests.CopyHygieneStepsTest.
+
+  @vps @sanity @copy-hygiene
+  Scenario: Page copy has no whitespace regressions
+    Then the page copy has no whitespace regressions
