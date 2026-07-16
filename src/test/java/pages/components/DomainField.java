@@ -8,10 +8,11 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * "Apply to:" domain search field that appears in the PricingBlock component
- * on the SDH, MDH, and WooCommerce landing pages. Same DOM shape across all
- * three, so the page objects share this component instance and Gherkin
- * routes through a single {@code DomainFieldStepsTest} class instead of
- * page-prefixed step defs on each landing page's test class.
+ * on landing pages that ship a pricing card (SDH, MDH, WooCommerce, Registry
+ * Lock, and any future page that renders the same block). Same DOM shape
+ * across all of them, so page objects share this component instance and
+ * Gherkin routes through a single {@code DomainFieldStepsTest} class instead
+ * of page-prefixed step defs on each landing page's test class.
  */
 public class DomainField {
     private static final Logger log = LogManager.getLogger(DomainField.class);

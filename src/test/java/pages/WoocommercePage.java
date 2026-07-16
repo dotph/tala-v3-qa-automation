@@ -295,11 +295,13 @@ public class WoocommercePage {
 
     public void assertTaxNoteDisplays(String expectedText) {
         log.info("Asserting tax note displays: \"{}\"", expectedText);
+        // Scoped to pricingSection() so a stray copy of the same string in the
+        // footer / hero can't mask a real regression in the pricing note.
         // .first() disambiguates the SSR + hydration duplicate — same pattern
         // the hero subheadline hits under parallel load. Both copies always
         // render identical text, so asserting on the first proves the visible
         // instance too (per conventions.md "no first()/nth() without a comment").
-        PlaywrightAssertions.assertThat(page.getByText(expectedText).first()).isVisible();
+        PlaywrightAssertions.assertThat(pricingSection().getByText(expectedText).first()).isVisible();
         log.info("PASSED: tax note displays \"{}\"", expectedText);
     }
 
