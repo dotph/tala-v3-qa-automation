@@ -1,5 +1,6 @@
 package tests;
 
+import config.RegistryLockPlan;
 import contexts.TestContext;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -75,6 +76,11 @@ public class RegistryLockTest {
 
     // ==================== INFO BLOCKS ==================== //
 
+    @Then("the RL info-block section has {int} blocks")
+    public void assertInfoBlockCount(int expected) {
+        registryLockPage.assertInfoBlockCount(expected);
+    }
+
     @Then("the RL info block {int} heading displays {string}")
     public void assertInfoBlockHeading(int position, String expectedHeading) {
         registryLockPage.assertInfoBlockHeading(position, expectedHeading);
@@ -124,6 +130,11 @@ public class RegistryLockTest {
         registryLockPage.assertPlansSectionTitleText(expectedTitle);
     }
 
+    @Then("the RL plans section has {int} plan cards")
+    public void assertPlanCardCount(int expected) {
+        registryLockPage.assertPlanCardCount(expected);
+    }
+
     @Then("the RL default selected plan is {string}")
     public void assertDefaultSelectedPlan(String planName) {
         registryLockPage.assertPlanIsInSelectedState(planName);
@@ -144,29 +155,35 @@ public class RegistryLockTest {
         registryLockPage.assertPlanTitle(expectedTitle);
     }
 
-    @Then("the RL plan supported TLDs paragraph displays {string}")
-    public void assertPlanSupportedTlds(String expectedText) {
-        registryLockPage.assertPlanSupportedTldsDisplays(expectedText);
+    @Then("the {string} RL plan supported TLDs paragraph displays {string}")
+    public void assertPlanSupportedTlds(String planName, String expectedText) {
+        registryLockPage.assertPlanSupportedTldsDisplays(planName, expectedText);
     }
 
-    @Then("the RL plan displays the price {string}")
-    public void assertPlanPrice(String expectedComposedText) {
-        registryLockPage.assertPlanPriceRowText(expectedComposedText);
+    @Then("the {string} RL plan displays the yearly price")
+    public void assertPlanYearlyPrice(String planName) {
+        // Compose the priceRow text from the enum: "$<price>*". The trailing "*"
+        // is the footnote-asterisk emitted by PricingBlock's priceStar span (asserted
+        // together in one hasText so any drift — currency, amount, or the footnote
+        // marker — surfaces as a single failure).
+        RegistryLockPlan plan = RegistryLockPlan.fromLabel(planName);
+        String expected = "$" + plan.getYearlyPrice().toPlainString() + "*";
+        registryLockPage.assertPlanPriceRowText(planName, expected);
     }
 
-    @Then("the RL plan displays the billing period {string}")
-    public void assertPlanBillingPeriod(String expectedPeriod) {
-        registryLockPage.assertPlanBillingPeriod(expectedPeriod);
+    @Then("the {string} RL plan displays the billing period {string}")
+    public void assertPlanBillingPeriod(String planName, String expectedPeriod) {
+        registryLockPage.assertPlanBillingPeriod(planName, expectedPeriod);
     }
 
-    @Then("the RL plan inclusions heading displays {string}")
-    public void assertPlanInclusionsHeading(String expectedHeading) {
-        registryLockPage.assertPlanInclusionsHeading(expectedHeading);
+    @Then("the {string} RL plan inclusions heading displays {string}")
+    public void assertPlanInclusionsHeading(String planName, String expectedHeading) {
+        registryLockPage.assertPlanInclusionsHeading(planName, expectedHeading);
     }
 
-    @Then("the RL plan includes {string}")
-    public void assertPlanIncludes(String feature) {
-        registryLockPage.assertPlanIncludes(feature);
+    @Then("the {string} RL plan includes {string}")
+    public void assertPlanIncludes(String planName, String feature) {
+        registryLockPage.assertPlanIncludes(planName, feature);
     }
 
     @Then("the RL tax note displays {string}")

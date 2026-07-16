@@ -33,6 +33,10 @@ Feature: Registry Lock Landing Page
     Then the RL why section title displays "With domain hijacking incidents being reported more frequently, it is highly important to add additional security for your domains."
     And the RL why intro includes "Registry lock offers the multiple levels of verification before any changes to your domain are applied."
 
+  @registry-lock @sanity @why @info-blocks @info-block-count
+  Scenario: Info-block section renders exactly two blocks
+    Then the RL info-block section has 2 blocks
+
   @registry-lock @sanity @why @info-blocks
   Scenario: Info block 1 displays correct copy and image
     Then the RL info block 1 heading displays "dotPH Registry Lock is a premium service to prevent hijacking of your PH domains"
@@ -50,8 +54,9 @@ Feature: Registry Lock Landing Page
   # ==================== SUBSCRIBE STEPS SECTION ==================== #
   # NOTE: this section renders as an <ol> of 4 <li> entries — each item pairs a
   # numeric badge (1..4) with an H3 sub-heading and description paragraph. The
-  # count scenario is the safety net for a 5th step (or a dropped one) that
-  # per-step scenarios wouldn't otherwise catch.
+  # count scenario is the safety net for a 5th step being added — the per-step
+  # outline already catches drops (its .nth() lookup fails when items go
+  # missing), but an addition would slip past a 1..4 outline unnoticed.
 
   @registry-lock @sanity @subscribe @subscribe-count
   Scenario: Subscribe section renders exactly four steps
@@ -74,14 +79,20 @@ Feature: Registry Lock Landing Page
   # ==================== PRICING SECTION ==================== #
   # NOTE: Registry Lock ships a SINGLE plan card that is always in the selected
   # state (aria-pressed=true, "✓ Selected") — there is no unselected counterpart
-  # to toggle against, so no plan-count / plan-order / plan-selection scenarios
-  # here. No promo label, no struck-through original price, no yearly renewal
-  # line — the card carries only monthly-equivalent "$100.00 / yr". Add to Cart
-  # href is the same "#" placeholder pattern used on Woo / SDH / MDH.
+  # to toggle against, so no plan-order / plan-selection scenarios here (the
+  # plan-count guard below still pins the single-card invariant). No promo
+  # label, no struck-through original price, no yearly-renewal-inclusion line —
+  # the card carries a flat annual price ($100.00 / yr, sourced from the
+  # RegistryLockPlan enum). Add to Cart href is the same "#" placeholder
+  # pattern used on Woo / SDH / MDH.
 
   @registry-lock @smoke @pricing
   Scenario: Plans section title displays correct copy
     Then the RL plans section title displays "Registry Lock"
+
+  @registry-lock @sanity @pricing @plan-count
+  Scenario: Plans section renders exactly one plan card
+    Then the RL plans section has 1 plan cards
 
   @registry-lock @smoke @pricing @default-selection
   Scenario: The single Registry Lock card is selected by default
@@ -92,15 +103,15 @@ Feature: Registry Lock Landing Page
   @registry-lock @sanity @pricing @plan-details
   Scenario: Registry Lock plan displays correct copies, pricing, and inclusions
     Then the RL plan title displays "Registry Lock"
-    And the RL plan supported TLDs paragraph displays "Supported: .PH, .COM.PH, .NET.PH, .ORG.PH"
-    And the RL plan displays the price "$100.00*"
-    And the RL plan displays the billing period "/ yr"
-    And the RL plan inclusions heading displays "What's included:"
-    And the RL plan includes "Registry-level domain lock"
-    And the RL plan includes "Multi-layer verification"
-    And the RL plan includes "Direct notification on change requests"
-    And the RL plan includes "Identity verification requirement"
-    And the RL plan includes "Protection against unauthorized transfers"
+    And the "Registry Lock" RL plan supported TLDs paragraph displays "Supported: .PH, .COM.PH, .NET.PH, .ORG.PH"
+    And the "Registry Lock" RL plan displays the yearly price
+    And the "Registry Lock" RL plan displays the billing period "/ yr"
+    And the "Registry Lock" RL plan inclusions heading displays "What's included:"
+    And the "Registry Lock" RL plan includes "Registry-level domain lock"
+    And the "Registry Lock" RL plan includes "Multi-layer verification"
+    And the "Registry Lock" RL plan includes "Direct notification on change requests"
+    And the "Registry Lock" RL plan includes "Identity verification requirement"
+    And the "Registry Lock" RL plan includes "Protection against unauthorized transfers"
 
   @registry-lock @sanity @pricing @apply-domain
   Scenario: Apply-to domain field accepts input

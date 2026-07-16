@@ -14,7 +14,6 @@ import java.util.regex.Pattern;
 public class RegistryLockPage {
     private static final Logger log = LogManager.getLogger(RegistryLockPage.class);
     private final Page page;
-    private static final String PLAN_NAME = "Registry Lock";
 
     public RegistryLockPage(Page page) {
         this.page = page;
@@ -35,7 +34,9 @@ public class RegistryLockPage {
         // note "eyebrow" is the local suffix here (PricingBlock reuses "tagline"
         // for the supported-TLDs paragraph downstream, so class-suffix
         // "tagline" is NOT the hero eyebrow — do not conflate).
-        Locator eyebrow = heroSection().locator("span[class*='eyebrow']");
+        // .first() mirrors the hero subtitle / image pattern — SSR + hydration
+        // can duplicate the tree under Playwright's browser.
+        Locator eyebrow = heroSection().locator("span[class*='eyebrow']").first();
         PlaywrightAssertions.assertThat(eyebrow).isVisible();
         PlaywrightAssertions.assertThat(eyebrow).hasText(expectedTagline);
         log.info("PASSED: hero tagline displays \"{}\"", expectedTagline);
@@ -112,9 +113,10 @@ public class RegistryLockPage {
 
     public void assertWhyIntroContains(String fragment) {
         log.info("Asserting why intro contains: \"{}\"", fragment);
-        // ContentBlock renders exactly one paragraph under its H2, so a
-        // section-scoped p locator is unambiguous without needing to walk
-        // via a following-sibling xpath.
+        // ContentBlock renders one intro paragraph under its H2 — but SSR +
+        // hydration can duplicate the tree under Playwright's browser (same
+        // pattern the hero subtitle / tax note hit). .first() disambiguates
+        // without needing a following-sibling xpath walk.
         Locator intro = whySection().locator("p").first();
         PlaywrightAssertions.assertThat(intro).containsText(fragment);
         log.info("PASSED: why intro contains \"{}\"", fragment);
@@ -140,10 +142,23 @@ public class RegistryLockPage {
         // concat's own trailing space (block 1, end of class attribute), and
         // rejects "...__itemList" because there's no space between "item" and
         // "List".
+        requirePositive(position);
         return page.locator("section[class*='SplitFeatureBlock']")
                 .getByRole(AriaRole.HEADING, new Locator.GetByRoleOptions().setLevel(3))
                 .nth(position - 1)
                 .locator("xpath=ancestor::div[contains(concat(' ', @class, ' '), '__item ')][1]");
+    }
+
+    public void assertInfoBlockCount(int expected) {
+        log.info("Asserting info-block section has {} block(s)", expected);
+        // Complementary to the per-block scenarios: an added 3rd block would
+        // slip past those (they pin block 1 and block 2 by index), so pin the
+        // count as an explicit invariant. Uses the same '__item ' xpath token
+        // idiom as infoBlock() so it can't drift out of sync.
+        Locator blocks = page.locator("section[class*='SplitFeatureBlock']")
+                .locator("xpath=.//div[contains(concat(' ', @class, ' '), '__item ')]");
+        PlaywrightAssertions.assertThat(blocks).hasCount(expected);
+        log.info("PASSED: info-block section has {} block(s)", expected);
     }
 
     public void assertInfoBlockHeading(int position, String expectedHeading) {
@@ -181,6 +196,15 @@ public class RegistryLockPage {
         return Pattern.compile(".*" + escaped + ".*");
     }
 
+    private static void requirePositive(int position) {
+        // Playwright's .nth(-1) selects the LAST element, not the first — a
+        // silent bug if Gherkin ever passes position 0. Fail loudly here.
+        if (position < 1) {
+            throw new IllegalArgumentException(
+                    "position must be 1-indexed (>= 1), got " + position);
+        }
+    }
+
     // ==================== SUBSCRIBE STEPS (StepsBlock) ==================== //
 
     public void assertSubscribeSectionTitle(String expectedTitle) {
@@ -192,9 +216,10 @@ public class RegistryLockPage {
 
     public void assertSubscribeStepCount(int expected) {
         log.info("Asserting Subscribe section has {} step(s)", expected);
-        // Complementary to the Scenario Outline that pins each known step by
-        // copy: without this, a 5th step added to StepsBlock (or a dropped one)
-        // would pass unnoticed since the outline only iterates 1..4.
+        // Complementary to the Scenario Outline: additions (a hypothetical 5th
+        // step) slip past an outline that only iterates 1..4. Drops surface
+        // via the outline's .nth() lookup failing, but this count guard
+        // documents the invariant and fails earlier / more cleanly on drops.
         PlaywrightAssertions.assertThat(subscribeSteps()).hasCount(expected);
         log.info("PASSED: Subscribe section has {} step(s)", expected);
     }
@@ -230,6 +255,7 @@ public class RegistryLockPage {
     }
 
     private Locator subscribeStep(int position) {
+        requirePositive(position);
         return subscribeSteps().nth(position - 1);
     }
 
@@ -246,24 +272,43 @@ public class RegistryLockPage {
         log.info("PASSED: plans section title \"{}\"", expectedTitle);
     }
 
+    public void assertPlanCardCount(int expected) {
+        log.info("Asserting plans section has {} plan card(s)", expected);
+        // Pins the single-card invariant that lets us skip plan-order and
+        // plan-selection scenarios entirely. Woo's counterpart is the
+        // assertPlanCardCount used in its plan-count scenario. Uses the same
+        // '__card ' xpath token idiom as planCard() so a plan h3 added
+        // outside a card wouldn't be miscounted.
+        Locator cards = pricingSection().locator(
+                "xpath=.//div[contains(concat(' ', @class, ' '), '__card ')]");
+        PlaywrightAssertions.assertThat(cards).hasCount(expected);
+        log.info("PASSED: plans section has {} plan card(s)", expected);
+    }
+
     public void assertPlanTitle(String expectedTitle) {
         log.info("Asserting plan title: \"{}\"", expectedTitle);
-        Locator h3 = planCard().getByRole(AriaRole.HEADING, new Locator.GetByRoleOptions().setLevel(3));
+        // Scoped to the pricing section AND matched with setExact(true) so the
+        // info-block h3s ("dotPH Registry Lock is a premium service...") that
+        // contain "Registry Lock" as substring don't accidentally satisfy this
+        // assertion via role-lookup partial matching.
+        Locator h3 = pricingSection().getByRole(AriaRole.HEADING,
+                new Locator.GetByRoleOptions().setLevel(3).setName(expectedTitle).setExact(true));
+        PlaywrightAssertions.assertThat(h3).isVisible();
         PlaywrightAssertions.assertThat(h3).hasText(expectedTitle);
         log.info("PASSED: plan title \"{}\"", expectedTitle);
     }
 
-    public void assertPlanSupportedTldsDisplays(String expectedText) {
-        log.info("Asserting plan supported TLDs paragraph: \"{}\"", expectedText);
+    public void assertPlanSupportedTldsDisplays(String planName, String expectedText) {
+        log.info("Asserting [{}] plan supported TLDs paragraph: \"{}\"", planName, expectedText);
         // PricingBlock's "supported" line is emitted as <p class="...__tagline"> —
         // NOT the same as HeroBlock's __eyebrow tagline (see hero section note).
-        Locator supported = planCard().locator("p[class*='tagline']");
+        Locator supported = planCard(planName).locator("p[class*='tagline']");
         PlaywrightAssertions.assertThat(supported).hasText(expectedText);
-        log.info("PASSED: plan supported TLDs paragraph \"{}\"", expectedText);
+        log.info("PASSED: [{}] plan supported TLDs paragraph \"{}\"", planName, expectedText);
     }
 
-    public void assertPlanPriceRowText(String expectedComposedText) {
-        log.info("Asserting plan price row composed text: \"{}\"", expectedComposedText);
+    public void assertPlanPriceRowText(String planName, String expectedComposedText) {
+        log.info("Asserting [{}] plan price row composed text: \"{}\"", planName, expectedComposedText);
         // Composed row text is textContent of three inline spans concatenated:
         //   <span priceDollar>$</span><span price>100.00</span><span priceStar>*</span>
         //   → "$100.00*"
@@ -271,16 +316,16 @@ public class RegistryLockPage {
         // any drift (currency, amount, or the footnote-asterisk marker) surfaces
         // as a single failure. No strikethrough guard here — Registry Lock has no
         // promo/original-price element, so there's nothing to compare against.
-        Locator priceRow = planCard().locator("[class*='priceRow']");
+        Locator priceRow = planCard(planName).locator("[class*='priceRow']");
         PlaywrightAssertions.assertThat(priceRow).hasText(expectedComposedText);
-        log.info("PASSED: plan price row composed text \"{}\"", expectedComposedText);
+        log.info("PASSED: [{}] plan price row composed text \"{}\"", planName, expectedComposedText);
     }
 
-    public void assertPlanBillingPeriod(String expectedPeriod) {
-        log.info("Asserting plan billing period: \"{}\"", expectedPeriod);
-        Locator period = planCard().locator("p[class*='period']");
+    public void assertPlanBillingPeriod(String planName, String expectedPeriod) {
+        log.info("Asserting [{}] plan billing period: \"{}\"", planName, expectedPeriod);
+        Locator period = planCard(planName).locator("p[class*='period']");
         PlaywrightAssertions.assertThat(period).hasText(expectedPeriod);
-        log.info("PASSED: plan billing period \"{}\"", expectedPeriod);
+        log.info("PASSED: [{}] plan billing period \"{}\"", planName, expectedPeriod);
     }
 
     private static final String SELECTED_BUTTON_TEXT = "✓ Selected";
@@ -292,7 +337,7 @@ public class RegistryLockPage {
         // The card-level aria-pressed catches a silent regression where the
         // inner button flips without the card modifier following, and the
         // inner-button text guards the visible label.
-        Locator card = planCard();
+        Locator card = planCard(planName);
         PlaywrightAssertions.assertThat(card).hasAttribute("aria-pressed", "true");
         Locator innerBtn = card.locator("button[aria-pressed]");
         PlaywrightAssertions.assertThat(innerBtn).hasAttribute("aria-pressed", "true");
@@ -300,31 +345,33 @@ public class RegistryLockPage {
         log.info("PASSED: plan \"{}\" is in selected state", planName);
     }
 
-    public void assertPlanInclusionsHeading(String expectedHeading) {
-        log.info("Asserting plan inclusions heading: \"{}\"", expectedHeading);
-        Locator heading = planCard().locator("p[class*='" + PricingBlockClasses.INCLUSIONS_HEADING + "']");
+    public void assertPlanInclusionsHeading(String planName, String expectedHeading) {
+        log.info("Asserting [{}] plan inclusions heading: \"{}\"", planName, expectedHeading);
+        Locator heading = planCard(planName).locator("p[class*='" + PricingBlockClasses.INCLUSIONS_HEADING + "']");
         PlaywrightAssertions.assertThat(heading).hasText(expectedHeading);
-        log.info("PASSED: plan inclusions heading \"{}\"", expectedHeading);
+        log.info("PASSED: [{}] plan inclusions heading \"{}\"", planName, expectedHeading);
     }
 
-    public void assertPlanIncludes(String feature) {
-        log.info("Asserting plan includes feature: \"{}\"", feature);
+    public void assertPlanIncludes(String planName, String feature) {
+        log.info("Asserting [{}] plan includes feature: \"{}\"", planName, feature);
         // Registry Lock's inclusion rows render as plain <li> with no svg check
         // icon per row (unlike Woo, which pairs each row with a ✓ icon). Only
         // asserting isVisible + exact hasText here — no checkIcon guard.
-        Locator item = planCard()
+        Locator item = planCard(planName)
                 .locator("li[class*='" + PricingBlockClasses.INCLUDED_SUFFIX + "']")
                 .filter(new Locator.FilterOptions().setHasText(feature));
         PlaywrightAssertions.assertThat(item).isVisible();
         PlaywrightAssertions.assertThat(item).hasText(feature);
-        log.info("PASSED: plan includes \"{}\"", feature);
+        log.info("PASSED: [{}] plan includes \"{}\"", planName, feature);
     }
 
     public void assertTaxNoteDisplays(String expectedText) {
         log.info("Asserting tax note displays: \"{}\"", expectedText);
+        // Scoped to pricingSection() so a stray copy of the same string in the
+        // footer / hero couldn't mask a real regression in the pricing note.
         // .first() disambiguates the SSR + hydration duplicate — same pattern
-        // used on Woo's tax note and every landing page's hero subtitle.
-        PlaywrightAssertions.assertThat(page.getByText(expectedText).first()).isVisible();
+        // used on every landing page's hero subtitle.
+        PlaywrightAssertions.assertThat(pricingSection().getByText(expectedText).first()).isVisible();
         log.info("PASSED: tax note displays \"{}\"", expectedText);
     }
 
@@ -347,13 +394,15 @@ public class RegistryLockPage {
         return page.locator("#pricing");
     }
 
-    private Locator planCard() {
+    private Locator planCard(String planName) {
         // Anchor via the plan h3 to survive class-hash rotation between builds
-        // (same pattern used on Woo). Registry Lock ships a single card, but
-        // going through the h3 keeps the locator strategy consistent with the
-        // multi-card landing pages.
+        // (same pattern used on Woo). setExact(true) so a future card whose
+        // title contains "Registry Lock" (or the info-block h3s that already
+        // contain it as substring) can't be picked up by role-lookup partial
+        // matching — even though the __card ancestor filter would still
+        // reject non-cards, exact matching removes the reliance.
         return page.getByRole(AriaRole.HEADING,
-                        new Page.GetByRoleOptions().setLevel(3).setName(PLAN_NAME))
+                        new Page.GetByRoleOptions().setLevel(3).setName(planName).setExact(true))
                 .locator("xpath=ancestor::div[contains(concat(' ', @class, ' '), '__card ')][1]");
     }
 }
