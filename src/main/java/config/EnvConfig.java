@@ -49,4 +49,8 @@ public class EnvConfig {
     public static String getWoocommerceUrl() {
         return getBaseUrl() + "/woocommerce";
     }
+
+    public static String getPrivateRegistrationUrl() {
+        return getBaseUrl() + "/private-registration";
+    }
 }

@@ -30,4 +30,9 @@
             <class name="runner.WoocommerceRunner"/>
         </classes>
     </test>
+    <test name="Private Registration Landing Page">
+        <classes>
+            <class name="runner.PrivateRegistrationRunner"/>
+        </classes>
+    </test>
 </suite>
