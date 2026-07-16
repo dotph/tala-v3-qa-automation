@@ -38,7 +38,16 @@ public final class CopyHygieneGuard {
     private static final String SCAN_JS =
             "el => {" +
             "  const issues = [];" +
-            "  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);" +
+            // Filter out text nodes inside script/style/noscript/template — the
+            // browser doesn't render them, but SHOW_TEXT walks them anyway.
+            // Without this, an inline hydration payload with a "const x  = 1"
+            // (double space) or a hidden template carrying an &nbsp; would
+            // fail every landing page at once with a report that points at
+            // markup, not copy.
+            "  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {" +
+            "    acceptNode: n => n.parentElement && n.parentElement.closest('script,style,noscript,template')" +
+            "      ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT" +
+            "  });" +
             "  while (walker.nextNode()) {" +
             "    const raw = walker.currentNode.textContent;" +
             "    if (!raw || !raw.trim()) continue;" +

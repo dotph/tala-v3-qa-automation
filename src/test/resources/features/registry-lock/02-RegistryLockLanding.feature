@@ -92,7 +92,7 @@ Feature: Registry Lock Landing Page
 
   @registry-lock @sanity @pricing @plan-count
   Scenario: Plans section renders exactly one plan card
-    Then the RL plans section has 1 plan cards
+    Then the RL plans section has 1 plan card
 
   @registry-lock @smoke @pricing @default-selection
   Scenario: The single Registry Lock card is selected by default

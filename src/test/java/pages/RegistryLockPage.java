@@ -34,9 +34,12 @@ public class RegistryLockPage {
         // note "eyebrow" is the local suffix here (PricingBlock reuses "tagline"
         // for the supported-TLDs paragraph downstream, so class-suffix
         // "tagline" is NOT the hero eyebrow — do not conflate).
-        // .first() mirrors the hero subtitle / image pattern — SSR + hydration
-        // can duplicate the tree under Playwright's browser.
-        Locator eyebrow = heroSection().locator("span[class*='eyebrow']").first();
+        // No .first() here: a live DOM probe on /registry-lock (and PR #16's
+        // parallel probe on /private-registration) both found exactly one
+        // eyebrow inside the hero section — Playwright's strict-mode locator
+        // enforces uniqueness, so any future SSR duplicate surfaces as a
+        // failure instead of silently getting masked.
+        Locator eyebrow = heroSection().locator("span[class*='eyebrow']");
         PlaywrightAssertions.assertThat(eyebrow).isVisible();
         PlaywrightAssertions.assertThat(eyebrow).hasText(expectedTagline);
         log.info("PASSED: hero tagline displays \"{}\"", expectedTagline);

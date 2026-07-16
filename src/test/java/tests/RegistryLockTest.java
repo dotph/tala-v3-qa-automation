@@ -130,7 +130,7 @@ public class RegistryLockTest {
         registryLockPage.assertPlansSectionTitleText(expectedTitle);
     }
 
-    @Then("the RL plans section has {int} plan cards")
+    @Then("the RL plans section has {int} plan card(s)")
     public void assertPlanCardCount(int expected) {
         registryLockPage.assertPlanCardCount(expected);
     }
