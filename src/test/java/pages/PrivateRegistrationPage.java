@@ -32,9 +32,11 @@ public class PrivateRegistrationPage {
         // a <span class="...__eyebrow"> above the H1. It's a distinct copy
         // element from the H1/subtitle, so a typo/capitalization drift there
         // wouldn't surface via any hero-title/subtitle assertion — hence its
-        // own step. Scoped by class suffix "eyebrow" to survive the per-build
-        // CSS-module hash rotation.
-        Locator eyebrow = page.locator("span[class*='eyebrow']").first();
+        // own step. Anchored to HeroBlock so a future __eyebrow span in a
+        // lower section can't collide, and the class suffix survives the
+        // per-build CSS-module hash rotation. No .first() — strict mode
+        // guards uniqueness within the hero.
+        Locator eyebrow = page.locator("[class*='HeroBlock']").locator("span[class*='eyebrow']");
         PlaywrightAssertions.assertThat(eyebrow).isVisible();
         PlaywrightAssertions.assertThat(eyebrow).hasText(expectedText);
         log.info("PASSED: hero kicker displays \"{}\"", expectedText);
@@ -145,7 +147,7 @@ public class PrivateRegistrationPage {
     }
 
     public void assertPlanCardCount(int expected) {
-        log.info("Asserting plans section has {} plan card", expected);
+        log.info("Asserting plans section has {} plan card(s)", expected);
         // Future-proof guard: Private Registration ships one plan today, so
         // the per-plan scenarios pin that single card. A silent second tier
         // (or the card disappearing entirely) would still pass every other

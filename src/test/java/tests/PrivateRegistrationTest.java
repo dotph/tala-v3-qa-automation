@@ -80,7 +80,7 @@ public class PrivateRegistrationTest {
         privateRegistrationPage.assertPlansSectionTitleText(expectedTitle);
     }
 
-    @Then("the PR plans section has {int} plan card")
+    @Then("the PR plans section has {int} plan card(s)")
     public void assertPlanCardCount(int expected) {
         privateRegistrationPage.assertPlanCardCount(expected);
     }
