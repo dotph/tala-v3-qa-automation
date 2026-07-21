@@ -161,4 +161,9 @@ public class SslTest {
     public void assertPlanIncludesFeature(String planName, String feature) {
         sslPage.assertPlanIncludesFeature(planName, feature);
     }
+
+    @Then("the {string} SSL plan includes {string} exactly {int} time(s)")
+    public void assertPlanIncludesFeatureExactly(String planName, String feature, int expectedCount) {
+        sslPage.assertPlanIncludesFeatureExactly(planName, feature, expectedCount);
+    }
 }

@@ -101,6 +101,9 @@ Feature: SSL Certificates Landing Page
     And the "Domain Validation" SSL plan includes "Secure www and non-www domains"
     And the "Domain Validation" SSL plan includes "99% All Web Browsers & Mobile Devices Support"
     And the "Domain Validation" SSL plan includes "99% Client OS Compatibility"
+    # NOTE: em-dash pin below is staging-normalized. mdot.ph renders the row
+    # with "—", dot.ph (production) renders it with "–", so a
+    # `-DtestEnv=PRODUCTION` run fails here until the two stacks converge.
     And the "Domain Validation" SSL plan includes "Automated online validation — no paperwork"
     And the "Domain Validation" SSL plan includes "Unlimited Server License"
     And the "Domain Validation" SSL plan includes "Unlimited Server Reissues"
@@ -140,6 +143,8 @@ Feature: SSL Certificates Landing Page
     And the "Wildcard Certificate" SSL plan includes "Secure unlimited sub-domain"
     And the "Wildcard Certificate" SSL plan includes "99% All Web Browsers & Mobile Devices Support"
     And the "Wildcard Certificate" SSL plan includes "99% Client OS Compatibility"
+    # NOTE: em-dash pin below is staging-normalized — same reason as the
+    # matching Domain Validation line above (mdot em-dash / dot.ph en-dash).
     And the "Wildcard Certificate" SSL plan includes "Automated online validation — no paperwork"
     And the "Wildcard Certificate" SSL plan includes "Unlimited Server License"
     And the "Wildcard Certificate" SSL plan includes "Unlimited Sub-domain Certs"
@@ -156,7 +161,7 @@ Feature: SSL Certificates Landing Page
   # https://dotph.atlassian.net/browse/TALA-2858
   @ssl @pricing @wildcard @known-bug
   Scenario: Wildcard Certificate lists Unlimited Sub-domain Security exactly once (currently failing per TALA-2858)
-    Then the "Wildcard Certificate" SSL plan includes "Unlimited Sub-domain Security"
+    Then the "Wildcard Certificate" SSL plan includes "Unlimited Sub-domain Security" exactly 1 time
 
   @ssl @sanity @pricing @apply-domain
   Scenario: Apply-to domain field accepts input
@@ -165,6 +170,10 @@ Feature: SSL Certificates Landing Page
     And the domain input placeholder displays "Find your domain name here"
     When the user fills the domain input with "example.com"
     Then the domain input value is "example.com"
+
+  @ssl @sanity @copy-hygiene
+  Scenario: Page copy has no whitespace regressions
+    Then the page copy has no whitespace regressions
 
   @ssl @smoke @pricing
   Scenario: Tax disclaimer displays correct copy

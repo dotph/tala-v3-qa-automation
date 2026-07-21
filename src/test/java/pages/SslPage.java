@@ -28,13 +28,15 @@ public class SslPage {
 
     public void assertHeroEyebrowText(String expectedText) {
         log.info("Asserting hero eyebrow displays: \"{}\"", expectedText);
-        // The eyebrow ("Security & Add-ons") is a plain generic (no semantic
-        // role, no stable class exposed via accessibility) rendered immediately
-        // before the H1. Anchoring on the H1 and stepping to its preceding
-        // sibling pins the exact DOM position without coupling to a per-build
-        // CSS-module hash — the ordering is stable regardless of styling.
-        Locator eyebrow = page.getByRole(AriaRole.HEADING, new Page.GetByRoleOptions().setLevel(1))
-                .locator("xpath=preceding-sibling::*[1]");
+        // The eyebrow ("Security & Add-ons") is emitted by HeroBlock as a
+        // <span class="...__eyebrow"> above the H1 (same DOM shape as the
+        // Private Registration hero — see PrivateRegistrationPage.
+        // assertHeroKickerText). Scoped to HeroBlock so a future __eyebrow
+        // span in a lower section can't collide; the class suffix survives
+        // the per-build CSS-module hash rotation. No .first() — strict mode
+        // guards uniqueness within the hero.
+        Locator eyebrow = page.locator("[class*='HeroBlock']").locator("span[class*='eyebrow']");
+        PlaywrightAssertions.assertThat(eyebrow).isVisible();
         PlaywrightAssertions.assertThat(eyebrow).hasText(expectedText);
         log.info("PASSED: hero eyebrow displays \"{}\"", expectedText);
     }
@@ -93,9 +95,15 @@ public class SslPage {
 
     public void assertSecureYourWebsiteTitle(String expectedTitle) {
         log.info("Asserting Secure Your Website section title: \"{}\"", expectedTitle);
+        // hasText per conventions.md — the H2 is a short exact label with no
+        // nested markup on the live page. `getByRole(HEADING).setName(...)`
+        // does a substring match on the accessible name, so an appended word
+        // ("Secure Your Website Today") would pass isVisible alone; hasText
+        // asserts equality after whitespace normalization.
         Locator h2 = page.getByRole(AriaRole.HEADING,
                 new Page.GetByRoleOptions().setLevel(2).setName(expectedTitle));
         PlaywrightAssertions.assertThat(h2).isVisible();
+        PlaywrightAssertions.assertThat(h2).hasText(expectedTitle);
         log.info("PASSED: Secure Your Website section title \"{}\"", expectedTitle);
     }
 
@@ -112,7 +120,7 @@ public class SslPage {
         // break it.
         Locator paragraph = page.getByRole(AriaRole.HEADING,
                         new Page.GetByRoleOptions().setLevel(2).setName("Secure Your Website"))
-                .locator("xpath=following-sibling::div[1]//p");
+                .locator("xpath=following-sibling::div[1]//p[1]");
         PlaywrightAssertions.assertThat(paragraph).containsText(fragment);
         log.info("PASSED: Secure Your Website paragraph contains \"{}\"", fragment);
     }
@@ -250,9 +258,7 @@ public class SslPage {
         // SSL CTA formula is `Get <plan-name> SSL` for Domain Validation and
         // Organization Validation. Wildcard Certificate is the one exception:
         // the live CTA renders as "Get Wildcard SSL" (drops the redundant
-        // " Certificate" word to keep the button label short). Verified live
-        // 2026-07-16 by clicking the Wildcard Select button and reading the
-        // rendered link text.
+        // " Certificate" word to keep the button label short).
         if (WILDCARD_PLAN_LABEL.equals(planName)) return "Get Wildcard SSL";
         return "Get " + planName + " SSL";
     }
@@ -269,6 +275,11 @@ public class SslPage {
         String expectedCtaText = getCtaText(planName);
         log.info("Asserting [{}] CTA links to: \"{}\"", planName, expectedHref);
         Locator cta = page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName(expectedCtaText));
+        // Visibility gate first — mirrors assertCtaReflectsPlan and prevents
+        // a hasAttribute-only assertion from passing on a hidden/detached CTA
+        // (all plans currently link to "#", so the href check alone is
+        // near-tautological without this gate).
+        PlaywrightAssertions.assertThat(cta).isVisible();
         PlaywrightAssertions.assertThat(cta).hasAttribute("href", expectedHref);
         log.info("PASSED: [{}] CTA links to \"{}\"", planName, expectedHref);
     }
@@ -304,5 +315,20 @@ public class SslPage {
         PlaywrightAssertions.assertThat(item).hasText(feature);
         PlaywrightAssertions.assertThat(item.locator("svg[class*='" + PricingBlockClasses.CHECK_ICON + "']")).isVisible();
         log.info("PASSED: [{}] plan includes \"{}\" (✓ icon present)", planName, feature);
+    }
+
+    public void assertPlanIncludesFeatureExactly(String planName, String feature, int expectedCount) {
+        log.info("Asserting [{}] plan includes feature \"{}\" exactly {} time(s)", planName, feature, expectedCount);
+        // Explicit count oracle — vs. the implicit strict-mode duplicate
+        // guard inside assertPlanIncludesFeature. Callers use this when the
+        // exact number of matches is the assertion itself (e.g. the
+        // @known-bug scenario asserting a known duplicate has been fixed to
+        // exactly one occurrence). Makes the exactly-once contract
+        // survivable if the sibling assertion is ever softened with .first().
+        Locator items = getPlanCard(planName)
+                .locator("li[class*='" + PricingBlockClasses.INCLUDED_SUFFIX + "']")
+                .filter(new Locator.FilterOptions().setHasText(feature));
+        PlaywrightAssertions.assertThat(items).hasCount(expectedCount);
+        log.info("PASSED: [{}] plan includes feature \"{}\" exactly {} time(s)", planName, feature, expectedCount);
     }
 }
