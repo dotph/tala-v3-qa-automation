@@ -77,3 +77,12 @@ Feature: Private Registration Landing Page
   Scenario: Add to Cart button displays correct copy and href
     Then the PR Add to Cart button displays "Add to Cart"
     And the PR Add to Cart button links to "#"
+
+  # ==================== COPY HYGIENE ==================== #
+  # Playwright's hasText / containsText / getByText all whitespace-normalize,
+  # so a doubled space or stray &nbsp; on this page would slip past every
+  # other scenario in this file. See tests.CopyHygieneStepsTest.
+
+  @private-registration @sanity @copy-hygiene
+  Scenario: Page copy has no whitespace regressions
+    Then the page copy has no whitespace regressions

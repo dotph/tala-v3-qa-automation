@@ -53,4 +53,8 @@ public class EnvConfig {
     public static String getPrivateRegistrationUrl() {
         return getBaseUrl() + "/private-registration";
     }
+
+    public static String getRegistryLockUrl() {
+        return getBaseUrl() + "/registry-lock";
+    }
 }

@@ -188,3 +188,12 @@ Feature: Multiple Domain Hosting Landing Page
   @multiple-domain-hosting @smoke @pricing
   Scenario: Tax disclaimer displays correct copy
     Then the MDH tax note displays "* Applicable taxes may apply at checkout."
+
+  # ==================== COPY HYGIENE ==================== #
+  # Playwright's hasText / containsText / getByText all whitespace-normalize,
+  # so a doubled space or stray &nbsp; on this page would slip past every
+  # other scenario in this file. See tests.CopyHygieneStepsTest.
+
+  @multiple-domain-hosting @sanity @copy-hygiene
+  Scenario: Page copy has no whitespace regressions
+    Then the page copy has no whitespace regressions

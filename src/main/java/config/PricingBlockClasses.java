@@ -2,9 +2,9 @@ package config;
 
 /**
  * CSS-module class-name suffixes emitted by the shared PricingBlock component
- * on cPanel / SDH / MDH landing pages. The middle of each class is a per-build
- * hash (e.g. "PricingBlock-module__MHo-mG__inclusionIncluded"); the suffix is
- * stable across builds while the hash rotates.
+ * on every landing page that ships a pricing card. The middle of each class
+ * is a per-build hash (e.g. "PricingBlock-module__MHo-mG__inclusionIncluded");
+ * the suffix is stable across builds while the hash rotates.
  *
  * Centralized here so a semantic rename by the frontend (e.g.
  * inclusionExcluded → inclusionUnavailable) is a one-line update instead of
