@@ -37,6 +37,14 @@ Feature: Microsoft 365 Landing Page
     Then the M365 intro card at position 3 displays the heading "Microsoft 365 Apps for Business"
     And the M365 intro card at position 3 shows the former name "(formerly Office 365 Business)"
 
+  # Count guard for the intro strip — deliberately counts the filtered
+  # "Microsoft 365 …" H3s (not __textCard divs) so a stray heading elsewhere
+  # on the page surfaces here instead of silently shifting introCard()
+  # positions in the assertions above.
+  @m365 @sanity @plan-intros @intro-count
+  Scenario: Intro strip renders exactly three plan cards
+    Then the M365 intro strip has 3 intro cards
+
   # ==================== MICROSOFT 365 FEATURES ==================== #
   @m365 @smoke @features
   Scenario: Features section title displays correct copy
@@ -98,6 +106,16 @@ Feature: Microsoft 365 Landing Page
     Then the "Business Basic" M365 plan inclusions heading displays "What's included:"
     And the "Business Standard" M365 plan inclusions heading displays "What's included:"
     And the "Apps for Business" M365 plan inclusions heading displays "What's included:"
+
+  # Row count sits alongside the per-string includes/excludes assertions in the
+  # per-plan scenarios below — this one pins the total so a silently added or
+  # duplicated row surfaces here (SSL hit this in TALA-2858 as a duplicated
+  # "Unlimited Sub-domain Security" line that individual pins alone missed).
+  @m365 @sanity @pricing @inclusion-count
+  Scenario: Every plan card renders the expected number of inclusion rows
+    Then the "Business Basic" M365 plan has 6 inclusion row(s)
+    And the "Business Standard" M365 plan has 6 inclusion row(s)
+    And the "Apps for Business" M365 plan has 5 inclusion row(s)
 
   @m365 @smoke @pricing @default-selection
   Scenario: Business Standard is selected by default

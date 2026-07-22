@@ -59,6 +59,11 @@ public class Microsoft365Test {
 
     // ==================== PLAN INTROS STRIP ==================== //
 
+    @Then("the M365 intro strip has {int} intro cards")
+    public void assertIntroCardCount(int expected) {
+        microsoft365Page.assertIntroCardCount(expected);
+    }
+
     @Then("the M365 intro card at position {int} displays the heading {string}")
     public void assertIntroCardHeading(int position, String expectedHeading) {
         microsoft365Page.assertIntroCardHeading(position, expectedHeading);
@@ -174,6 +179,11 @@ public class Microsoft365Test {
     @Then("the {string} M365 plan inclusions heading displays {string}")
     public void assertPlanInclusionsHeading(String planName, String expectedHeading) {
         microsoft365Page.assertPlanInclusionsHeading(planName, expectedHeading);
+    }
+
+    @Then("the {string} M365 plan has {int} inclusion row(s)")
+    public void assertPlanInclusionRowCount(String planName, int expected) {
+        microsoft365Page.assertPlanInclusionRowCount(planName, expected);
     }
 
     @Then("the {string} M365 plan includes {string}")

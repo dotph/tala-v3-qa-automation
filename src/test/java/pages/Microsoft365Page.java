@@ -92,6 +92,21 @@ public class Microsoft365Page {
     // "Microsoft 365 Features" grid (5 cards). All lookups here anchor on the
     // intro H3 text so the two sections can't collide by index.
 
+    public void assertIntroCardCount(int expected) {
+        log.info("Asserting intro strip has {} intro card(s)", expected);
+        // Guards the introCard() locator's uniqueness assumption — a fourth
+        // intro card (or any stray "Microsoft 365 …" H3 elsewhere on the
+        // page) would silently shift introCard(position) matches without
+        // this count. Deliberately counts the FILTERED H3s rather than
+        // __textCard divs so a stray heading elsewhere fails here loudly
+        // instead of quietly widening the pool.
+        Locator introH3s = page.getByRole(AriaRole.HEADING,
+                        new Page.GetByRoleOptions().setLevel(3))
+                .filter(new Locator.FilterOptions().setHasText("Microsoft 365 "));
+        PlaywrightAssertions.assertThat(introH3s).hasCount(expected);
+        log.info("PASSED: intro strip has {} intro card(s)", expected);
+    }
+
     public void assertIntroCardHeading(int position, String expectedHeading) {
         log.info("Asserting intro card at position {} heading: \"{}\"", position, expectedHeading);
         Locator h3 = introCard(position)
@@ -309,7 +324,15 @@ public class Microsoft365Page {
     public void assertCtaReflectsPlan(String planName) {
         String expectedCtaText = getCtaText(planName);
         log.info("Asserting CTA reflects plan: \"{}\" (expecting \"{}\")", planName, expectedCtaText);
-        Locator cta = page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName(expectedCtaText));
+        // Scoped to pricingSection() — verified live on mdot.ph that M365
+        // renders a single re-labeling CTA inside the pricing section's
+        // __applySection (sibling of the plan cards, NOT inside any __card
+        // ancestor). Only one "Get <plan>" link exists at a time; the scope
+        // guards against a stray "Get X" link in the footer / hero masking a
+        // regression here. A per-card scoped lookup via getPlanCard would
+        // break because the CTA lives outside every __card wrapper.
+        Locator cta = pricingSection().getByRole(AriaRole.LINK,
+                new Locator.GetByRoleOptions().setName(expectedCtaText));
         PlaywrightAssertions.assertThat(cta).isVisible();
         log.info("PASSED: CTA reflects plan \"{}\" (shows \"{}\")", planName, expectedCtaText);
     }
@@ -317,7 +340,10 @@ public class Microsoft365Page {
     public void assertCtaHrefForPlan(String planName, String expectedHref) {
         String expectedCtaText = getCtaText(planName);
         log.info("Asserting [{}] CTA links to: \"{}\"", planName, expectedHref);
-        Locator cta = page.getByRole(AriaRole.LINK, new Page.GetByRoleOptions().setName(expectedCtaText));
+        // Same pricingSection() scope as assertCtaReflectsPlan — see that
+        // method for the single-re-labeling-CTA finding.
+        Locator cta = pricingSection().getByRole(AriaRole.LINK,
+                new Locator.GetByRoleOptions().setName(expectedCtaText));
         // Visibility gate first — mirrors SSL's assertCtaHrefForPlan and
         // prevents a hasAttribute-only assertion from passing on a hidden /
         // detached CTA (all plans currently link to "#", so the href check
@@ -333,8 +359,11 @@ public class Microsoft365Page {
         // the footer / hero can't mask a real regression in the pricing note.
         // .first() disambiguates the SSR + hydration duplicate that shows up
         // under parallel load — same pattern as the hero subheadline; both
-        // copies always render identical text.
-        PlaywrightAssertions.assertThat(pricingSection().getByText(expectedText).first()).isVisible();
+        // copies always render identical text. hasText (exact-match) rather
+        // than isVisible on a substring locator so trailing copy drift like
+        // "… See terms." would fail here instead of passing silently.
+        Locator taxNote = pricingSection().getByText(expectedText).first();
+        PlaywrightAssertions.assertThat(taxNote).hasText(expectedText);
         log.info("PASSED: tax note displays \"{}\"", expectedText);
     }
 
@@ -346,6 +375,21 @@ public class Microsoft365Page {
                 .locator("p[class*='" + PricingBlockClasses.INCLUSIONS_HEADING + "']");
         PlaywrightAssertions.assertThat(heading).hasText(expectedHeading);
         log.info("PASSED: [{}] plan inclusions heading \"{}\"", planName, expectedHeading);
+    }
+
+    public void assertPlanInclusionRowCount(String planName, int expected) {
+        log.info("Asserting [{}] plan has {} inclusion row(s)", planName, expected);
+        // Guards against a silently added / duplicated / dropped inclusion row.
+        // The per-string assertPlanIncludesFeature calls already pin each named
+        // row, but they never assert the total — so a duplicate row (see
+        // SSL/TALA-2858) or a stealth insertion of a new row stays green
+        // without this count. Substring class match "inclusion" catches both
+        // INCLUDED_SUFFIX ("inclusionIncluded") and EXCLUDED_SUFFIX
+        // ("inclusionExcluded") in one locator, so the count covers the full
+        // list regardless of the ✓/X mix per plan.
+        Locator rows = getPlanCard(planName).locator("li[class*='inclusion']");
+        PlaywrightAssertions.assertThat(rows).hasCount(expected);
+        log.info("PASSED: [{}] plan has {} inclusion row(s)", planName, expected);
     }
 
     private Locator getPlanFeatureItem(String planName, String feature, String classSuffix) {
