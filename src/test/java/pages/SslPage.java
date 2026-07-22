@@ -286,9 +286,13 @@ public class SslPage {
 
     public void assertTaxNoteDisplays(String expectedText) {
         log.info("Asserting tax note displays: \"{}\"", expectedText);
-        // .first() disambiguates the SSR + hydration duplicate — same pattern
-        // as the hero subheadline; both copies always render identical text.
-        PlaywrightAssertions.assertThat(page.getByText(expectedText).first()).isVisible();
+        // Scoped to pricingSection() so a stray copy of the same string in
+        // the footer / hero can't mask a real regression in the pricing note
+        // (matches the WoocommercePage sibling). .first() disambiguates the
+        // SSR + hydration duplicate that shows up under parallel load — same
+        // pattern as the hero subheadline; both copies always render
+        // identical text.
+        PlaywrightAssertions.assertThat(pricingSection().getByText(expectedText).first()).isVisible();
         log.info("PASSED: tax note displays \"{}\"", expectedText);
     }
 
