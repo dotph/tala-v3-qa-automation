@@ -40,4 +40,9 @@
             <class name="runner.RegistryLockRunner"/>
         </classes>
     </test>
+    <test name="SSL Certificates Landing Page">
+        <classes>
+            <class name="runner.SslRunner"/>
+        </classes>
+    </test>
 </suite>

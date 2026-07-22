@@ -68,3 +68,4 @@ Feature: Footer (shared across landing pages)
       | the WooCommerce page             |
       | the Private Registration page    |
       | the Registry Lock page           |
+      | the SSL Certificates page        |
