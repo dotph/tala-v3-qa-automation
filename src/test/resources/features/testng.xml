@@ -45,4 +45,9 @@
             <class name="runner.SslRunner"/>
         </classes>
     </test>
+    <test name="Microsoft 365 Landing Page">
+        <classes>
+            <class name="runner.Microsoft365Runner"/>
+        </classes>
+    </test>
 </suite>
