@@ -47,16 +47,50 @@ fi
 # Enhance description using Claude
 if [ "$DESCRIPTION" != "No description provided." ]; then
   echo ""
-  echo "[jira] Enhancing description..."
-  ENHANCED=$(claude -p --output-format text "You are a QA engineer writing Jira ticket descriptions. Rewrite the following into a professional, clear, and concise description suitable for a Jira story. Keep it to 2-3 sentences max. Only output the enhanced description text, nothing else.
+  ENHANCE_TIMEOUT=30
+  echo "[jira] Enhancing description (${ENHANCE_TIMEOUT}s timeout)..."
+  ENHANCE_PROMPT="You are a QA engineer writing Jira ticket descriptions. Rewrite the following into a professional, clear, and concise description suitable for a Jira story. Keep it to 2-3 sentences max. Only output the enhanced description text, nothing else.
 
-Input: ${DESCRIPTION}" 2>/dev/null)
+Input: ${DESCRIPTION}"
 
-  if [ $? -eq 0 ] && [ -n "$ENHANCED" ]; then
+  # Portable timeout wrapper — prefer coreutils, fall back to bash background/kill.
+  # Stderr from claude is intentionally NOT redirected so failure reasons surface.
+  if command -v gtimeout >/dev/null 2>&1; then
+    ENHANCED=$(gtimeout "$ENHANCE_TIMEOUT" claude -p --output-format text "$ENHANCE_PROMPT")
+    ENHANCE_RC=$?
+  elif command -v timeout >/dev/null 2>&1; then
+    ENHANCED=$(timeout "$ENHANCE_TIMEOUT" claude -p --output-format text "$ENHANCE_PROMPT")
+    ENHANCE_RC=$?
+  else
+    ENHANCE_TMP=$(mktemp -t jira-plan-enhance.XXXXXX)
+    claude -p --output-format text "$ENHANCE_PROMPT" >"$ENHANCE_TMP" &
+    ENHANCE_PID=$!
+    ( sleep "$ENHANCE_TIMEOUT" && kill -TERM "$ENHANCE_PID" 2>/dev/null ) &
+    ENHANCE_WATCHER=$!
+    wait "$ENHANCE_PID" 2>/dev/null
+    ENHANCE_RC=$?
+    kill "$ENHANCE_WATCHER" 2>/dev/null
+    wait "$ENHANCE_WATCHER" 2>/dev/null || true
+    ENHANCED=$(cat "$ENHANCE_TMP")
+    rm -f "$ENHANCE_TMP"
+  fi
+
+  if [ "$ENHANCE_RC" -eq 0 ] && [ -n "$ENHANCED" ]; then
     DESCRIPTION="$ENHANCED"
     echo "[jira] Enhanced description: $DESCRIPTION"
   else
-    echo "[jira] Could not enhance description, using original."
+    if [ "$ENHANCE_RC" -eq 124 ] || [ "$ENHANCE_RC" -eq 143 ]; then
+      REASON="timed out after ${ENHANCE_TIMEOUT}s"
+    elif [ "$ENHANCE_RC" -ne 0 ]; then
+      REASON="claude exited with code ${ENHANCE_RC}"
+    else
+      REASON="claude returned empty output"
+    fi
+    echo ""
+    echo "[jira] !!! WARNING: Description enhancement FAILED — ${REASON}."
+    echo "[jira] !!! Using the original description unchanged. Re-run 'git jira-plan' to retry,"
+    echo "[jira] !!! or edit the description in Jira after the ticket is created."
+    echo ""
   fi
 fi
 
