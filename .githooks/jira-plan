@@ -86,11 +86,7 @@ Input: ${DESCRIPTION}"
     else
       REASON="claude returned empty output"
     fi
-    echo ""
-    echo "[jira] !!! WARNING: Description enhancement FAILED — ${REASON}."
-    echo "[jira] !!! Using the original description unchanged. Re-run 'git jira-plan' to retry,"
-    echo "[jira] !!! or edit the description in Jira after the ticket is created."
-    echo ""
+    echo "[jira] WARNING: Description enhancement failed — ${REASON}. Using the original description. Re-run 'git jira-plan' to retry, or edit the ticket in Jira after it's created."
   fi
 fi
 
