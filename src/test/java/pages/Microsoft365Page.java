@@ -274,7 +274,7 @@ public class Microsoft365Page {
         // one hasText call pins currency, amount, and asterisk together.
         Locator priceRow = getPlanCard(planName).locator("[class*='priceRow']");
         PlaywrightAssertions.assertThat(priceRow).hasText("$" + expectedYearly + "*");
-        log.info("PASSED: [{}] plan pricing ($" + expectedYearly + "*)", planName);
+        log.info("PASSED: [{}] plan pricing (${}*)", planName, expectedYearly);
     }
 
     public void assertPlanBillingPeriod(String planName, String expectedPeriod) {

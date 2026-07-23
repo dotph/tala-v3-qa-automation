@@ -113,9 +113,9 @@ Feature: Microsoft 365 Landing Page
   # "Unlimited Sub-domain Security" line that individual pins alone missed).
   @m365 @sanity @pricing @inclusion-count
   Scenario: Every plan card renders the expected number of inclusion rows
-    Then the "Business Basic" M365 plan has 6 inclusion row(s)
-    And the "Business Standard" M365 plan has 6 inclusion row(s)
-    And the "Apps for Business" M365 plan has 5 inclusion row(s)
+    Then the "Business Basic" M365 plan has 6 inclusion rows
+    And the "Business Standard" M365 plan has 6 inclusion rows
+    And the "Apps for Business" M365 plan has 5 inclusion rows
 
   @m365 @smoke @pricing @default-selection
   Scenario: Business Standard is selected by default
