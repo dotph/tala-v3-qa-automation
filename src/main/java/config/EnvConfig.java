@@ -61,4 +61,8 @@ public class EnvConfig {
     public static String getSslUrl() {
         return getBaseUrl() + "/ssl";
     }
+
+    public static String getMicrosoft365Url() {
+        return getBaseUrl() + "/microsoft-365";
+    }
 }

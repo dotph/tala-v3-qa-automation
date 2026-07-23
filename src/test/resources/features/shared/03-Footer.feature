@@ -69,3 +69,4 @@ Feature: Footer (shared across landing pages)
       | the Private Registration page    |
       | the Registry Lock page           |
       | the SSL Certificates page        |
+      | the Microsoft 365 page           |
