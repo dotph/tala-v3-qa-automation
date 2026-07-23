@@ -75,9 +75,12 @@ Input: ${DESCRIPTION}"
       ENHANCE_MARK="${ENHANCE_TMP}.timedout"
       claude -p --output-format text "$ENHANCE_PROMPT" >"$ENHANCE_TMP" &
       ENHANCE_PID=$!
-      ( sleep "$ENHANCE_TIMEOUT" && touch "$ENHANCE_MARK" \
-          && kill -TERM "$ENHANCE_PID" 2>/dev/null \
-          && sleep 5 && kill -KILL "$ENHANCE_PID" 2>/dev/null ) &
+      # Use `;` so a failed touch (unwritable TMPDIR after mktemp) can't
+      # short-circuit the kills — losing the marker forfeits Case-D
+      # classification but time is still bounded via 143/137 → timeout.
+      ( sleep "$ENHANCE_TIMEOUT"; touch "$ENHANCE_MARK" 2>/dev/null; \
+          kill -TERM "$ENHANCE_PID" 2>/dev/null; \
+          sleep 5; kill -KILL "$ENHANCE_PID" 2>/dev/null ) &
       ENHANCE_WATCHER=$!
       wait "$ENHANCE_PID" 2>/dev/null
       ENHANCE_RC=$?
