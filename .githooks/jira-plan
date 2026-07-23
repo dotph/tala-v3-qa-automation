@@ -47,16 +47,69 @@ fi
 # Enhance description using Claude
 if [ "$DESCRIPTION" != "No description provided." ]; then
   echo ""
-  echo "[jira] Enhancing description..."
-  ENHANCED=$(claude -p --output-format text "You are a QA engineer writing Jira ticket descriptions. Rewrite the following into a professional, clear, and concise description suitable for a Jira story. Keep it to 2-3 sentences max. Only output the enhanced description text, nothing else.
+  ENHANCE_TIMEOUT=30
+  echo "[jira] Enhancing description (${ENHANCE_TIMEOUT}s timeout)..."
+  ENHANCE_PROMPT="You are a QA engineer writing Jira ticket descriptions. Rewrite the following into a professional, clear, and concise description suitable for a Jira story. Keep it to 2-3 sentences max. Only output the enhanced description text, nothing else.
 
-Input: ${DESCRIPTION}" 2>/dev/null)
+Input: ${DESCRIPTION}"
 
-  if [ $? -eq 0 ] && [ -n "$ENHANCED" ]; then
+  # Portable timeout wrapper — prefer coreutils, fall back to bash background/kill.
+  # Coreutils uses -k 5s to escalate SIGTERM to SIGKILL for a TERM-ignoring child.
+  # The fallback mirrors this with a manual TERM → sleep 5 → KILL chain, and
+  # touches a marker file so a graceful TERM handler that exits 0 with partial
+  # output still classifies as a timeout instead of silently persisting a fragment.
+  # Stderr from claude is intentionally NOT redirected so failure reasons surface.
+  ENHANCED=""
+  ENHANCE_RC=0
+  if command -v gtimeout >/dev/null 2>&1; then
+    ENHANCED=$(gtimeout -k 5s "$ENHANCE_TIMEOUT" claude -p --output-format text "$ENHANCE_PROMPT")
+    ENHANCE_RC=$?
+  elif command -v timeout >/dev/null 2>&1; then
+    ENHANCED=$(timeout -k 5s "$ENHANCE_TIMEOUT" claude -p --output-format text "$ENHANCE_PROMPT")
+    ENHANCE_RC=$?
+  else
+    ENHANCE_TMP=$(mktemp -t jira-plan-enhance.XXXXXX 2>/dev/null)
+    if [ -z "$ENHANCE_TMP" ]; then
+      ENHANCE_RC=99
+    else
+      ENHANCE_MARK="${ENHANCE_TMP}.timedout"
+      claude -p --output-format text "$ENHANCE_PROMPT" >"$ENHANCE_TMP" &
+      ENHANCE_PID=$!
+      # Use `;` so a failed touch (unwritable TMPDIR after mktemp) can't
+      # short-circuit the kills — losing the marker forfeits Case-D
+      # classification but time is still bounded via 143/137 → timeout.
+      ( sleep "$ENHANCE_TIMEOUT"; touch "$ENHANCE_MARK" 2>/dev/null; \
+          kill -TERM "$ENHANCE_PID" 2>/dev/null; \
+          sleep 5; kill -KILL "$ENHANCE_PID" 2>/dev/null ) &
+      ENHANCE_WATCHER=$!
+      wait "$ENHANCE_PID" 2>/dev/null
+      ENHANCE_RC=$?
+      # Killing the watcher subshell leaves its `sleep` child orphaned but inert.
+      kill "$ENHANCE_WATCHER" 2>/dev/null
+      wait "$ENHANCE_WATCHER" 2>/dev/null || true
+      if [ -e "$ENHANCE_MARK" ]; then
+        ENHANCE_RC=124
+        rm -f "$ENHANCE_MARK"
+      fi
+      ENHANCED=$(cat "$ENHANCE_TMP")
+      rm -f "$ENHANCE_TMP"
+    fi
+  fi
+
+  if [ "$ENHANCE_RC" -eq 0 ] && [ -n "$ENHANCED" ]; then
     DESCRIPTION="$ENHANCED"
     echo "[jira] Enhanced description: $DESCRIPTION"
   else
-    echo "[jira] Could not enhance description, using original."
+    if [ "$ENHANCE_RC" -eq 124 ] || [ "$ENHANCE_RC" -eq 137 ] || [ "$ENHANCE_RC" -eq 143 ]; then
+      REASON="timed out after ${ENHANCE_TIMEOUT}s"
+    elif [ "$ENHANCE_RC" -eq 99 ]; then
+      REASON="could not create temp file (TMPDIR unwritable?)"
+    elif [ "$ENHANCE_RC" -ne 0 ]; then
+      REASON="claude exited with code ${ENHANCE_RC}"
+    else
+      REASON="claude returned empty output"
+    fi
+    echo "[jira] WARNING: Description enhancement failed — ${REASON}. Using the original description. Re-run 'git jira-plan' to retry, or edit the ticket in Jira after it's created."
   fi
 fi
 
